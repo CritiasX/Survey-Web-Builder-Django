@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+{% load static %}
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>SurveyWeb</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'landingPage/css/bss-overrides.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="stylesheet" href="{% static 'landingPage/css/Navbar-Centered-Links-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'landingPage/css/Sidebar-Menu-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'landingPage/css/Sidebar-Menu.css' %}">
+    <link rel="stylesheet" href="{% static 'landingPage/css/zectStudio---Sidebar-Menu-by-bbbootstrap.css' %}">
+</head>
+
+<body class="ps-0 me-0 pe-0 mt-0 pt-0">
+    {% include 'reuseable/header.html' %}
+    <div id="sidemenu">
+        <header id="header" class="header">
+            <div id="header_toggle-1" class="header_toggle"><i class="fa fa-star bx bx-menu" id="header-toggle"></i></div>
+            <div class="header_img"><img src="{% static 'landingPage/img/hczKIze.jpg' %}"></div>
+        </header>
+        <div id="nav-bar" class="l-navbar">
+            <nav class="nav">
+                <div><a id="header_toggle-2" class="nav_logo header_toggle" href="#"><i class="fa fa-star bx bx-layer nav_logo-icon"></i><span class="nav_logo-name">Sidemenu</span></a>
+                    <div class="nav_list"><a class="nav_link active" href="#"><i class="fa fa-star bx bx-grid-alt nav_icon"></i><span class="nav_name">Main Menu</span></a><a class="nav_link" href="#"><i class="fa fa-star bx bx-user nav_icon"></i><span class="nav_name">Users</span></a><a class="nav_link" href="#"><i class="fa fa-star bx bx-message-square-detail nav_icon"></i><span class="nav_name">Chat</span></a><a class="nav_link" href="#"><i class="fa fa-star bx bx-bookmark nav_icon"></i><span class="nav_name">Bookmark</span></a><a class="nav_link" href="#"><i class="fa fa-star bx bx-folder nav_icon"></i><span class="nav_name">Folders</span></a><a class="nav_link" href="#"><i class="fa fa-star bx bx-bar-chart-alt nav_icon"></i><span class="nav_name">Stats</span></a></div><a class="nav_link signout" href="#"><i class="fa fa-star bx bx-log-out nav_icon"></i><span class="nav_name">Signout</span></a>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'landingPage/js/bs-init.js' %}"></script>
+    <script src="{% static 'landingPage/js/Sidebar-Menu-sidebar.js' %}"></script>
+    <script src="{% static 'landingPage/js/zectStudio---Sidebar-Menu-by-bbbootstrap-sidemenu.js' %}"></script>
+    {% include 'reuseable/footer.html' %}
+</body>
+
+</html>
