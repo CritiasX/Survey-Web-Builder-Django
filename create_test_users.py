@@ -13,6 +13,8 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
+# import Section model after setup
+from WebSurvey.models import Section
 
 
 def create_or_update_user(username, email, password, first_name='', last_name='', role='student'):
@@ -26,7 +28,7 @@ def create_or_update_user(username, email, password, first_name='', last_name=''
         if created:
             user.set_password(password)
             user.save()
-            print(f"✓ Created user: {username} (role={role})")
+            print(f"Created user: {username} (role={role})")
         else:
             # update fields if different
             changed = False
@@ -50,12 +52,12 @@ def create_or_update_user(username, email, password, first_name='', last_name=''
             changed = True
             if changed:
                 user.save()
-            print(f"→ Updated existing user: {username} (role={getattr(user, 'role', 'N/A')})")
+            print(f"Updated existing user: {username} (role={getattr(user, 'role', 'N/A')})")
         return user
     except IntegrityError as e:
-        print(f"✗ IntegrityError creating/updating {username}: {e}")
+        print(f"Error creating/updating {username}: {e}")
     except Exception as e:
-        print(f"✗ Error creating/updating {username}: {e}")
+        print(f"Error creating/updating {username}: {e}")
 
 
 if __name__ == '__main__':
@@ -69,6 +71,18 @@ if __name__ == '__main__':
         role='teacher'
     )
 
+    # Create a default section for this teacher (required for students)
+    section_name = 'BSIT 4E G2'
+    try:
+        section, sec_created = Section.objects.get_or_create(teacher=teacher, name=section_name)
+        if sec_created:
+            print(f"Created section: {section.name} for teacher {teacher.username}")
+        else:
+            print(f"Using existing section: {section.name} for teacher {teacher.username}")
+    except Exception as e:
+        print(f"Error creating/using section: {e}")
+        section = None
+
     # Create a student
     student = create_or_update_user(
         username='student1',
@@ -78,6 +92,15 @@ if __name__ == '__main__':
         last_name='Student',
         role='student'
     )
+
+    # Assign student to the default section (if available)
+    if student and section:
+        try:
+            student.section = section
+            student.save(update_fields=['section'])
+            print(f"Assigned student {student.username} to section {section.name}")
+        except Exception as e:
+            print(f"Error assigning student to section: {e}")
 
     print("\n=== Test Credentials ===")
     print("Teacher:")

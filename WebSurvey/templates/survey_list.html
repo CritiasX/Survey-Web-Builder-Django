@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+{% load static %}
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>My Surveys - ResponsePro</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
+</head>
+
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle shifted" id="sidebarToggle">
+        <i class="bx bx-menu"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="bx bx-grid-alt" style="color: white;"></i>
+                </div>
+                <span>ResponsePro</span>
+            </a>
+        </div>
+
+        <!-- User Profile -->
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            </div>
+            <div class="user-info">
+                <h6>{{ user.first_name }} {{ user.last_name }}</h6>
+                <p>{{ user.get_role_display }}</p>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Main Menu</div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'dashboard' %}" class="sidebar-nav-link">
+                    <i class="bx bx-home-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section-title">Survey Management</div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_list' %}" class="sidebar-nav-link active">
+                    <i class="bx bx-file"></i>
+                    <span>My Surveys</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_create' %}" class="sidebar-nav-link">
+                    <i class="bx bx-plus-circle"></i>
+                    <span>Create Survey</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'section_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-layer"></i>
+                    <span>Manage Sections</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-bar-chart-alt"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-group"></i>
+                    <span>Responses</span>
+                </a>
+            </div>
+
+            <!-- Common Menu Items -->
+            <div class="nav-section-title">Account</div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="sidebar-logout">
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="bx bx-log-out"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-content" id="mainContent">
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>My Surveys</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'landing' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">My Surveys</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="container-fluid px-4 pb-5">
+            <!-- Header with Create Button -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1">Survey Management</h4>
+                            <p class="text-muted mb-0">Create, edit, and manage your surveys</p>
+                        </div>
+                        <a href="{% url 'survey_create' %}" class="btn btn-primary">
+                            <i class="bx bx-plus-circle me-2"></i>Create New Survey
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Surveys Grid -->
+            <div class="row">
+                {% for survey in surveys %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="dashboard-card h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge
+                                {% if survey.status == 'published' %}bg-success
+                                {% elif survey.status == 'draft' %}bg-secondary
+                                {% else %}bg-danger{% endif %}">
+                                {{ survey.get_status_display }}
+                            </span>
+                            <div class="dropdown">
+                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical-rounded" style="font-size: 1.5rem;"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'survey_edit' survey.id %}">
+                                        <i class="bx bx-edit me-2"></i>Edit
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="duplicateSurvey({{ survey.id }})">
+                                        <i class="bx bx-copy me-2"></i>Duplicate
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteSurvey({{ survey.id }}, '{{ survey.title }}')">
+                                        <i class="bx bx-trash me-2"></i>Delete
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h5 class="mb-2">{{ survey.title }}</h5>
+                        <p class="text-muted small mb-3">
+                            {{ survey.description|truncatewords:15|default:"No description" }}
+                        </p>
+
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span><i class="bx bx-question-mark me-1"></i>{{ survey.questions.count }} questions</span>
+                            <span><i class="bx bx-star me-1"></i>{{ survey.total_points }} pts</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span><i class="bx bx-group me-1"></i>{{ survey.responses.count }} responses</span>
+                            <span><i class="bx bx-time me-1"></i>{{ survey.created_at|date:"M d, Y" }}</span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'survey_edit' survey.id %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bx bx-edit me-1"></i>Edit Survey
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="dashboard-card text-center py-5">
+                        <i class="bx bx-file" style="font-size: 4rem; opacity: 0.3;"></i>
+                        <h5 class="mt-3 mb-2">No Surveys Yet</h5>
+                        <p class="text-muted mb-4">Create your first survey to get started!</p>
+                        <a href="{% url 'survey_create' %}" class="btn btn-primary">
+                            <i class="bx bx-plus-circle me-2"></i>Create Your First Survey
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/dashboard-sidebar.js' %}"></script>
+
+    <script>
+        function deleteSurvey(surveyId, surveyTitle) {
+            if (confirm(`Are you sure you want to delete "${surveyTitle}"? This action cannot be undone.`)) {
+                fetch(`/surveys/${surveyId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error deleting survey');
+                    console.error(error);
+                });
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+
+</html>
+

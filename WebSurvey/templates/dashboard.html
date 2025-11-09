@@ -60,16 +60,23 @@
             <div class="nav-section-title">Survey Management</div>
 
             <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'survey_list' %}" class="sidebar-nav-link">
                     <i class="bx bx-file"></i>
                     <span>My Surveys</span>
                 </a>
             </div>
 
             <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'survey_create' %}" class="sidebar-nav-link">
                     <i class="bx bx-plus-circle"></i>
                     <span>Create Survey</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'section_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-layer"></i>
+                    <span>Manage Sections</span>
                 </a>
             </div>
 
@@ -213,7 +220,7 @@
                         </div>
                         <h5 class="card-title mb-2">Create New</h5>
                         <p class="mb-3" style="height: 3.5rem; display: flex; align-items: center; justify-content: center;">Start a new survey</p>
-                        <a href="#" class="btn btn-info">Create Survey</a>
+                        <a href="{% url 'survey_create' %}" class="btn btn-info">Create Survey</a>
                     </div>
                 </div>
             </div>
