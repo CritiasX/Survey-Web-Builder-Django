@@ -1,14 +1,24 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
-class User(models.Model):
-    user_id = models.AutoField(primary_key=True)
-    username = models.CharField('username', max_length=30, unique=True)
-    email = models.EmailField('email address', unique=True)
-    password_hash = models.CharField('password', max_length=30)
-    is_admin = models.BooleanField('admin', default=False)
-    if is_admin == False:
-        role = models.CharField('role', default='user', max_length=20)
-    else:
-        role = models.CharField('role', default='admin', max_length=20)
+class Section(models.Model):
+    name = models.CharField(max_length=150)
+    teacher = models.ForeignKey('User', on_delete=models.CASCADE, related_name='sections')
+
+    def __str__(self):
+        return f"{self.name} ({self.teacher.username})"
+
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('student', 'Student'),
+        ('teacher', 'Teacher'),
+    ]
+
+    role = models.CharField('role', max_length=20, choices=ROLE_CHOICES, default='student')
+    # optional section association for students
+    section = models.ForeignKey(Section, null=True, blank=True, on_delete=models.SET_NULL, related_name='students')
+
+    def __str__(self):
+        return f"{self.username} ({self.get_role_display()})"

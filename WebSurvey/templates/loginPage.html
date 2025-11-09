@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+{% load static %}
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>SurveyWeb</title>
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="stylesheet" href="{% static 'css/Navbar-Centered-Links-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Sidebar-Menu-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Sidebar-Menu.css' %}">
+    <link rel="stylesheet" href="{% static 'css/page-animations.css' %}">
+    <style>
+        /* Keep AJAX alerts constrained and visible inside the form card */
+        #alert-container .alert {
+            position: relative;
+            z-index: 1060;
+            max-width: 640px;
+            margin: 0 0 1rem 0;
+        }
+    </style>
+</head>
+
+<body class="m-0 p-0 d-flex flex-column min-vh-100">
+    {% include 'reuseable/header.html' %}
+
+    <div class="container my-4">
+        <div class="row border rounded-4 border-0 border-primary border-opacity-10 shadow" data-aos="fade-up" data-aos-duration="600">
+            <div class="col-md-6" data-aos="fade-right" data-aos-duration="500">
+                <section class="text-white py-4 py-xl-5">
+                    <div class="container m-auto">
+                        <div class="border rounded border-0 d-flex flex-column justify-content-center align-items-center p-4 py-5" style="background: linear-gradient(rgba(0,123,255,0.2), rgba(0,123,255,0.2)), url({% static 'img/photo-1761249571329-69d623df6fae.jpg' %}) center / cover; height: 500px;">
+                            <div class="row">
+                                <div class="col-md-10 col-xl-8 text-center mx-auto">
+                                    <h1 class="text-uppercase fw-bold mb-3">create forms for free</h1>
+                                    <p class="mb-4">Etiam a rutrum, mauris lectus aptent convallis. Fusce vulputate aliquam, sagittis odio metus.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-sm-12 col-md-6 d-flex flex-column m-auto" data-aos="fade-left" data-aos-duration="500">
+                <div class="m-auto mt-6 mb-4 pb-0">
+                    <p class="text-center" style="font-size: 24px;font-weight: bold;text-align: left;">Login</p>
+                    <p>Don't have an account yet?&nbsp;<a href="{% url 'register' %}">Register</a></p>
+                </div>
+
+                <div class="ps-4 pe-4 mb-4">
+                    <!-- AJAX alert container -->
+                    <div id="alert-container"></div>
+
+                    <form method="POST" id="loginForm" class="justify-content-center align-items-center align-content-center">
+                        {% csrf_token %}
+
+                        <input class="form-control ms-0 me-1 mt-1 mb-1 my-4" type="text" name="username" placeholder="Username" required>
+                        <input class="form-control my-4" type="password" name="password" placeholder="Password" required>
+
+                        <button class="btn btn-primary mt-0 ripple" type="submit" style="min-width: 100%;">
+                            <span class="button-text">Login</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'reuseable/footer.html' %}
+
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script src="{% static 'js/bs-init.js' %}"></script>
+    <script src="{% static 'js/Sidebar-Menu-sidebar.js' %}"></script>
+    <script src="{% static 'js/page-animations.js' %}"></script>
+
+    <script>
+    $(document).ready(function() {
+        $('#loginForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const btnText = submitBtn.find('.button-text');
+            const spinner = submitBtn.find('.spinner-border');
+            const alertContainer = $('#alert-container');
+
+            // Disable button and show loading
+            submitBtn.prop('disabled', true);
+            btnText.addClass('d-none');
+            spinner.removeClass('d-none');
+
+            // Clear previous alerts
+            alertContainer.empty();
+
+            $.ajax({
+                url: form.attr('action') || window.location.pathname,
+                type: 'POST',
+                data: form.serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        alertContainer.html(
+                            '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                            response.message +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>'
+                        );
+
+                        // Redirect after short delay
+                        setTimeout(function() {
+                            window.location.href = response.redirect_url;
+                        }, 1000);
+                    } else {
+                        // Show error message
+                        alertContainer.html(
+                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            response.message +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>'
+                        );
+
+                        // Re-enable button
+                        submitBtn.prop('disabled', false);
+                        btnText.removeClass('d-none');
+                        spinner.addClass('d-none');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Show error message
+                    alertContainer.html(
+                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                        'An error occurred. Please try again.' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                        '</div>'
+                    );
+
+                    // Re-enable button
+                    submitBtn.prop('disabled', false);
+                    btnText.removeClass('d-none');
+                    spinner.addClass('d-none');
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

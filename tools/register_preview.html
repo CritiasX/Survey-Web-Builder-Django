@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>SurveyWeb</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+    <link rel="stylesheet" href="/static/css/bss-overrides.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="stylesheet" href="/static/css/Navbar-Centered-Links-icons.css">
+    <link rel="stylesheet" href="/static/css/Sidebar-Menu-sidebar.css">
+    <link rel="stylesheet" href="/static/css/Sidebar-Menu.css">
+    <link rel="stylesheet" href="/static/css/page-animations.css">
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    
+<nav class="navbar navbar-expand-md bg-body py-3" style="box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin: 0; width: 100%; position: relative; font-family: 'Lato', sans-serif;">
+    <style>
+        /* Header layout tweaks: left / center / right columns */
+        .header-grid { grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; }
+        .header-left { justify-self: start; }
+        .header-center { justify-self: center; }
+        .header-right { justify-self: end; }
+
+        /* Center the nav items horizontally */
+        .header-center .navbar-nav { display: flex; gap: 1rem; justify-content: center; align-items: center; }
+
+        /* Make toggler sit above other elements on small screens */
+        .navbar-toggler { z-index: 1100; }
+
+        /* Slight spacing refinements */
+        .navbar-brand { margin-right: .5rem; }
+        .header-center .nav-link { padding-left: .5rem; padding-right: .5rem; }
+
+        /* Ensure action button doesn't wrap under nav on smaller md widths */
+        @media (max-width: 991px) {
+            .header-grid { grid-template-columns: auto 1fr; }
+            .header-right { display: none !important; }
+        }
+    </style>
+
+    <div class="container-fluid px-4 d-grid align-items-center header-grid" style="grid-template-columns: auto 1fr auto;">
+        <!-- Left: Logo (and mobile toggler) -->
+        <div class="header-left d-flex align-items-center">
+            <a class="navbar-brand d-flex align-items-center me-2" href="/" style="font-family: 'Lato', sans-serif;">
+                <span class="bs-icon-sm bs-icon-rounded bs-icon-primary d-flex justify-content-center align-items-center me-2 bs-icon">
+                    <!-- ...existing logo svg... -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-bezier">
+                        <path fill-rule="evenodd" d="M0 10.5A1.5 1.5 0 0 1 1.5 9h1A1.5 1.5 0 0 1 4 10.5v1A1.5 1.5 0 0 1 2.5 13h-1A1.5 1.5 0 0 1 0 11.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm10.5.5A1.5 1.5 0 0 1 13.5 9h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zM6 4.5A1.5 1.5 0 0 1 7.5 3h1A1.5 1.5 0 0 1 10 4.5v1A1.5 1.5 0 0 1 8.5 7h-1A1.5 1.5 0 0 1 6 5.5zM7.5 4a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"></path>
+                        <path d="M6 4.5H1.866a1 1 0 1 0 0 1h2.668A6.517 6.517 0 0 0 1.814 9H2.5c.123 0 .244.015.358.043a5.517 5.517 0 0 1 3.185-3.185A1.503 1.503 0 0 1 6 5.5zm3.957 1.358A1.5 1.5 0 0 0 10 5.5v-1h4.134a1 1 0 1 1 0 1h-2.668a6.517 6.517 0 0 1 2.72 3.5H13.5c-.123 0-.243.015-.358.043a5.517 5.517 0 0 0-3.185-3.185z"></path>
+                    </svg>
+                </span>
+                <span>ResponsePro</span>
+            </a>
+
+            <!-- Mobile toggler (keeps collapse behavior) -->
+            <button class="navbar-toggler ms-1 d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#navcol-3" aria-controls="navcol-3" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <!-- Center: Navigation -->
+        <div class="header-center collapse navbar-collapse justify-content-center" id="navcol-3" style="justify-self: center;">
+            <ul class="navbar-nav">
+                <li class="nav-item px-2"><a class="nav-link text-uppercase fw-bold" href="/" style="font-family: 'Lato', sans-serif;">Home</a></li>
+                <li class="nav-item px-2"><a class="nav-link text-uppercase fw-bold" href="/about/" style="font-family: 'Lato', sans-serif;">About</a></li>
+                <li class="nav-item px-2"><a class="nav-link text-uppercase fw-bold" href="/contact/" style="font-family: 'Lato', sans-serif;">Contacts</a></li>
+            </ul>
+
+            <!-- Mobile-only action button inside collapsed nav to avoid overlap -->
+            <div class="d-md-none mt-2">
+                
+                    
+                        <a href="/login/" class="btn btn-primary text-uppercase w-100 ripple" id="auth-btn-mobile" style="font-family: 'Lato', sans-serif;">Login</a>
+                    
+                
+            </div>
+        </div>
+
+        <!-- Right: Action button (desktop) -->
+        <div class="header-right d-none d-md-flex align-items-center" style="justify-self: end;">
+            
+                
+                    <a href="/login/" class="btn btn-primary text-uppercase px-4 ripple" id="auth-btn" style="font-family: 'Lato', sans-serif;">Login</a>
+                
+            
+        </div>
+    </div>
+</nav>
+
+
+    <!-- Messages/Alerts Section (only shown when authenticated) -->
+    
+
+    <div>
+        <div class="container my-4">
+            <div class="row border rounded-4 border-0 border-primary border-opacity-10 shadow" data-aos="fade-up" data-aos-duration="600">
+                <div class="col-md-6 d-none d-sm-none d-md-block d-lg-block d-xl-block d-xxl-flex" data-aos="fade-right" data-aos-duration="500">
+                    <section class="text-white py-4 py-xl-5">
+                        <div class="container m-auto">
+                            <div class="border rounded border-0 d-flex flex-column justify-content-center align-items-center p-4 py-5" style="background: linear-gradient(rgba(0,123,255,0.2), rgba(0,123,255,0.2)), url(/static/img/photo-1761249571329-69d623df6fae.jpg) center / cover;height: 500px;">
+                                <div class="row">
+                                    <div class="col-md-10 col-xl-8 text-center d-flex d-sm-flex d-md-flex justify-content-center align-items-center justify-content-md-start align-items-md-center justify-content-xl-center mx-auto">
+                                        <div>
+                                            <h1 class="text-uppercase fw-bold mb-3">create forms for free</h1>
+                                            <p class="mb-4">Etiam a rutrum, mauris lectus aptent convallis. Fusce vulputate aliquam, sagittis odio metus. Nulla porttitor vivamus viverra laoreet, aliquam netus.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <div class="col-sm-12 col-md-6 d-flex flex-column m-auto" data-aos="fade-left" data-aos-duration="500">
+                    <div class="m-auto mt-6 mb-4 pb-0">
+                        <p style="font-size: 24px;font-weight: bold;text-align: left;">Create an account</p>
+                        <p>Already have an account?&nbsp;<a href="/login/">Login</a></p>
+                    </div>
+                    <div class="ps-4 pe-4 mb-4">
+                        <div id="alert-container"></div>
+                        <form method="POST" id="registerForm" class="justify-content-center align-items-center align-content-center">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="qGKSD6ln4gSAD8EsRO5qVFDnU7sSc9TkExLA1D0dUfkL3aasB1WKA5F5E44VKJcI">
+                            <div class="d-flex m-0">
+                                <input class="form-control ms-0 me-1 mt-1 mb-1 my-4" type="text" name="first_name" placeholder="First name" style="font-family: Lato, sans-serif;text-align: left;" required>
+                                <input class="form-control ms-1 me-0 mt-1 mb-1 my-4" type="text" name="last_name" placeholder="Last name" style="font-family: Lato, sans-serif;text-align: left;" required>
+                            </div>
+                            <input class="form-control my-4" type="email" name="email" placeholder="Email" required>
+                            <input class="form-control ms-0 me-1 mt-1 mb-1 my-4" type="text" name="username" placeholder="Username" required>
+                            <input class="form-control my-4" type="password" name="password" placeholder="Password" required>
+                            <input class="form-control my-4" type="password" name="password_confirm" placeholder="Confirm Password" required>
+                            <select class="form-select my-4" name="role" required>
+                                <option value="" selected disabled>Select Role</option>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+
+                            <!-- Section selection: shown for students; populated by view context 'sections' -->
+                            <div id="section-select-wrapper" style="display:none;">
+                                <label for="section" class="form-label">Select Section (for students)</label>
+                                <select class="form-select my-2" name="section" id="section">
+                                    <option value="" selected>Choose a section</option>
+                                    
+                                </select>
+                            </div>
+                            <button class="btn btn-primary mt-0 ripple" type="submit" style="min-width: 100%;">
+                                <span class="button-text">Register</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center bg-body py-4 mt-auto" style="box-shadow: 0px 0px 1px;">
+    <div class="container">
+        <div class="row row-cols-1 row-cols-lg-3">
+            <div class="col">
+                <p class="text-body my-2">Copyright&nbsp;© 2025 ResponsePro</p>
+            </div>
+            <div class="col">
+                <ul class="list-inline my-2">
+                    <li class="list-inline-item me-4"><a class="bs-icon-circle bs-icon-primary bs-icon" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-facebook">
+                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"></path>
+                    </svg></a></li>
+                    <li class="list-inline-item me-4"><a class="bs-icon-circle bs-icon-primary bs-icon" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-twitter-x">
+                        <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"></path>
+                    </svg></a></li>
+                    <li class="list-inline-item"><a class="bs-icon-circle bs-icon-primary bs-icon" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" class="bi bi-instagram">
+                        <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"></path>
+                    </svg></a></li>
+                </ul>
+            </div>
+            <div class="col">
+                <ul class="list-inline my-2">
+                    <li class="list-inline-item"><a class="link-body-emphasis" href="#">Privacy Policy</a></li>
+                    <li class="list-inline-item"><a class="link-body-emphasis" href="#">Terms of Use</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script src="/static/js/bs-init.js"></script>
+    <script src="/static/js/Sidebar-Menu-sidebar.js"></script>
+    <script src="/static/js/page-animations.js"></script>
+
+    <script>
+    $(document).ready(function() {
+        // show/hide section select based on chosen role
+        $('select[name="role"]').on('change', function(){
+            if ($(this).val() === 'student') {
+                $('#section-select-wrapper').show();
+            } else {
+                $('#section-select-wrapper').hide();
+                $('#section').val('');
+            }
+        });
+
+        $('#registerForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const btnText = submitBtn.find('.button-text');
+            const spinner = submitBtn.find('.spinner-border');
+            const alertContainer = $('#alert-container');
+
+            // Disable button and show loading
+            submitBtn.prop('disabled', true);
+            btnText.addClass('d-none');
+            spinner.removeClass('d-none');
+
+            // Clear previous alerts
+            alertContainer.empty();
+
+            $.ajax({
+                url: form.attr('action') || window.location.pathname,
+                type: 'POST',
+                data: form.serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        alertContainer.html(
+                            '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                            response.message +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>'
+                        );
+
+                        // Clear form
+                        form[0].reset();
+
+                        // Redirect after short delay
+                        setTimeout(function() {
+                            window.location.href = response.redirect_url;
+                        }, 1500);
+                    } else {
+                        // Show error message
+                        alertContainer.html(
+                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            response.message +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>'
+                        );
+
+                        // Re-enable button
+                        submitBtn.prop('disabled', false);
+                        btnText.removeClass('d-none');
+                        spinner.addClass('d-none');
+
+                        // Scroll to alert
+                        alertContainer[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Show error message
+                    alertContainer.html(
+                        '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                        'An error occurred. Please try again.' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                        '</div>'
+                    );
+
+                    // Re-enable button
+                    submitBtn.prop('disabled', false);
+                    btnText.removeClass('d-none');
+                    spinner.addClass('d-none');
+                }
+            });
+        });
+    });
+    </script>
+</body>
+
+</html>
