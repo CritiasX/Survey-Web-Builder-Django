@@ -236,14 +236,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message);
-                        location.reload();
+                        showAlert(data.message, 'Success');
+                        setTimeout(() => location.reload(), 1500);
                     } else {
-                        alert('Error: ' + data.message);
+                        showAlert('Error: ' + data.message, 'Error');
                     }
                 })
                 .catch(error => {
-                    alert('Error deleting survey');
+                    showAlert('Error deleting survey', 'Error');
                     console.error(error);
                 });
             }
@@ -263,7 +263,37 @@
             }
             return cookieValue;
         }
+
+        // Initialize alert modal
+        let alertModalInstance;
+        document.addEventListener('DOMContentLoaded', function() {
+            alertModalInstance = new bootstrap.Modal(document.getElementById('alertModal'));
+        });
+
+        function showAlert(message, title = 'Notice') {
+            document.getElementById('alertModalTitle').textContent = title;
+            document.getElementById('alertModalBody').textContent = message;
+            alertModalInstance.show();
+        }
     </script>
+
+    <!-- Alert Modal -->
+    <div class="modal fade" id="alertModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertModalTitle">Notice</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="alertModalBody">
+                    <!-- Message will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
