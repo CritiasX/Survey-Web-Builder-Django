@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'surveyweb',          # your database name
         'USER': 'root',          # your DB user
-        'PASSWORD': 'password',  # your DB password
+        'PASSWORD': 'Jm123!',  # your DB password
         'HOST': '127.0.0.1',            # or your DB host
         'PORT': '3306',
         'OPTIONS': {

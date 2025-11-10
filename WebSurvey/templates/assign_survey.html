@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Survey - Survey Web</title>
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Assign Survey to Sections</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5>Survey: <strong>{{ survey.title }}</strong></h5>
+                            <p class="text-muted">{{ survey.description|truncatewords:20 }}</p>
+                        </div>
+
+                        {% if messages %}
+                        <div class="mb-3">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Select Sections to Assign:</label>
+                                <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                                    {% for section in sections %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="sections" value="{{ section.id }}" 
+                                               id="section{{ section.id }}"
+                                               {% if section.id in assigned_section_ids %}checked{% endif %}>
+                                        <label class="form-check-label" for="section{{ section.id }}">
+                                            <strong>{{ section.name }}</strong>
+                                            <small class="text-muted">({{ section.students.count }} student{{ section.students.count|pluralize }})</small>
+                                        </label>
+                                    </div>
+                                    {% empty %}
+                                    <p class="text-muted mb-0">
+                                        <i class="fa fa-info-circle"></i> 
+                                        No sections available. Please create sections first.
+                                    </p>
+                                    {% endfor %}
+                                </div>
+                                <small class="form-text text-muted mt-2 d-block">
+                                    Students in the selected sections will be able to view this survey if it's published and within the date range.
+                                </small>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'survey_list' %}" class="btn btn-secondary">
+                                    <i class="fa fa-arrow-left"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary" {% if not sections %}disabled{% endif %}>
+                                    <i class="fa fa-save"></i> Save Assignment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+</body>
+</html>

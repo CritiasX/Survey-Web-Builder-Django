@@ -465,7 +465,7 @@
                             <div class="section-checkbox-group">
                                 {% for section in sections %}
                                 <div class="form-check">
-                                    <input class="form-check-input section-checkbox" type="checkbox" name="surveySections" id="section-{{ section.id }}" value="{{ section.id }}" {% if survey and section in survey.sections.all %}checked{% endif %}>
+                                    <input class="form-check-input section-checkbox" type="checkbox" name="surveySections" id="section-{{ section.id }}" value="{{ section.id }}" {% if survey and section in survey.assigned_sections.all %}checked{% endif %}>
                                     <label class="form-check-label" for="section-{{ section.id }}">
                                         {{ section.name }}
                                         <span class="text-muted small">({{ section.students.count }} student{{ section.students.count|pluralize }})</span>

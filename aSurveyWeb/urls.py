@@ -14,11 +14,13 @@ urlpatterns = [
     
     # Survey builder URLs
     path('surveys/', views.survey_list, name='survey_list'),
+    path('surveys/pending/', views.pending_surveys, name='pending_surveys'),
     path('surveys/create/', views.survey_builder, name='survey_create'),
     path('surveys/<int:survey_id>/edit/', views.survey_builder, name='survey_edit'),
     path('surveys/save/', views.save_survey, name='save_survey'),
     path('surveys/<int:survey_id>/data/', views.get_survey_data, name='get_survey_data'),
     path('surveys/<int:survey_id>/delete/', views.delete_survey, name='delete_survey'),
+    path('surveys/<int:survey_id>/assign/', views.assign_survey_to_sections, name='assign_survey'),
     
     # Section management URLs
     path('sections/', views.section_list, name='section_list'),

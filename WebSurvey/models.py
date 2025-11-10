@@ -36,10 +36,13 @@ class Survey(models.Model):
     description = models.TextField(blank=True)
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='surveys')
     sections = models.ManyToManyField(Section, blank=True, related_name='surveys')
+    assigned_sections = models.ManyToManyField(Section, blank=True, related_name='assigned_surveys', help_text="Sections that can view this survey")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     total_points = models.IntegerField(default=0)
     time_limit = models.IntegerField(null=True, blank=True, help_text="Time limit in minutes")
     due_date = models.DateTimeField(null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True, help_text="When survey becomes available")
+    end_date = models.DateTimeField(null=True, blank=True, help_text="When survey closes")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 from .models import User, Section, Survey, Question, MultipleChoiceOption, TrueFalseAnswer, EnumerationAnswer
 import json
 
@@ -148,10 +150,68 @@ def registerPage(request):
 
 @login_required
 def dashboardPage(request):
+    user = request.user
     context = {
-        'user': request.user,
-        'role': request.user.role
+        'user': user,
+        'role': user.role
     }
+    
+    if user.role == 'student':
+        # Get available surveys for student
+        if user.section:
+            now = timezone.now()
+            available_surveys = Survey.objects.filter(
+                assigned_sections=user.section,
+                status='published'
+            ).filter(
+                Q(start_date__lte=now) | Q(start_date__isnull=True)
+            ).filter(
+                Q(end_date__gte=now) | Q(end_date__isnull=True)
+            ).distinct()
+            
+            # Get student's responses
+            from .models import StudentResponse
+            completed_surveys = StudentResponse.objects.filter(
+                student=user,
+                is_submitted=True
+            ).count()
+            
+            # Pending surveys (available but not completed)
+            completed_survey_ids = StudentResponse.objects.filter(
+                student=user,
+                is_submitted=True
+            ).values_list('survey_id', flat=True)
+            
+            pending_surveys = available_surveys.exclude(id__in=completed_survey_ids)
+            
+            context.update({
+                'available_surveys': available_surveys,
+                'available_count': available_surveys.count(),
+                'completed_count': completed_surveys,
+                'pending_count': pending_surveys.count(),
+                'recent_surveys': available_surveys[:5]
+            })
+        else:
+            context.update({
+                'available_surveys': [],
+                'available_count': 0,
+                'completed_count': 0,
+                'pending_count': 0,
+                'recent_surveys': []
+            })
+    
+    elif user.role == 'teacher':
+        # Get teacher's surveys
+        surveys = Survey.objects.filter(teacher=user)
+        from .models import StudentResponse
+        total_responses = StudentResponse.objects.filter(survey__teacher=user).count()
+        
+        context.update({
+            'total_surveys': surveys.count(),
+            'total_responses': total_responses,
+            'recent_surveys': surveys[:5]
+        })
+    
     return render(request, 'dashboard.html', context)
 
 def logoutPage(request):
@@ -160,18 +220,83 @@ def logoutPage(request):
     return redirect('landing')
 
 
+@login_required
+def pending_surveys(request):
+    """Show pending surveys for students (surveys they haven't completed yet)"""
+    if request.user.role != 'student':
+        messages.error(request, 'Only students can access this page.')
+        return redirect('dashboard')
+    
+    user = request.user
+    
+    if user.section:
+        now = timezone.now()
+        # Get all available surveys
+        available_surveys = Survey.objects.filter(
+            assigned_sections=user.section,
+            status='published'
+        ).filter(
+            Q(start_date__lte=now) | Q(start_date__isnull=True)
+        ).filter(
+            Q(end_date__gte=now) | Q(end_date__isnull=True)
+        ).distinct()
+        
+        # Get completed survey IDs
+        from .models import StudentResponse
+        completed_survey_ids = StudentResponse.objects.filter(
+            student=user,
+            is_submitted=True
+        ).values_list('survey_id', flat=True)
+        
+        # Pending = available but not completed
+        pending_surveys_list = available_surveys.exclude(id__in=completed_survey_ids)
+        
+        context = {
+            'pending_surveys': pending_surveys_list,
+            'pending_count': pending_surveys_list.count(),
+            'user': user
+        }
+    else:
+        context = {
+            'pending_surveys': [],
+            'pending_count': 0,
+            'user': user
+        }
+    
+    return render(request, 'pending_surveys.html', context)
+
+
 # Survey Builder Views
 @login_required
 def survey_list(request):
-    """List all surveys for the teacher"""
-    if request.user.role != 'teacher':
-        messages.error(request, 'Only teachers can access this page.')
-        return redirect('dashboard')
-
-    surveys = Survey.objects.filter(teacher=request.user)
+    """List surveys based on user role"""
+    user = request.user
+    
+    if user.role == 'teacher':
+        # Teachers see all their surveys
+        surveys = Survey.objects.filter(teacher=user)
+    elif user.role == 'student':
+        # Students see only surveys assigned to their section
+        if user.section:
+            now = timezone.now()
+            surveys = Survey.objects.filter(
+                assigned_sections=user.section,
+                status='published'
+            ).filter(
+                # If start_date is set, must be started. If not set, show it
+                Q(start_date__lte=now) | Q(start_date__isnull=True)
+            ).filter(
+                # If end_date is set, must not be ended. If not set, show it
+                Q(end_date__gte=now) | Q(end_date__isnull=True)
+            ).distinct()
+        else:
+            surveys = Survey.objects.none()
+    else:
+        surveys = Survey.objects.none()
+    
     context = {
         'surveys': surveys,
-        'user': request.user
+        'user': user
     }
     return render(request, 'survey_list.html', context)
 
@@ -220,12 +345,19 @@ def save_survey(request):
             survey.status = data.get('status', 'draft')
             survey.time_limit = data.get('time_limit')
             survey.due_date = data.get('due_date')
+            survey.start_date = data.get('start_date')
+            survey.end_date = data.get('end_date')
             survey.save()
 
-            # Handle sections
+            # Handle sections - save to assigned_sections for student visibility
             section_ids = data.get('sections', [])
             if section_ids:
                 survey.sections.set(Section.objects.filter(id__in=section_ids, teacher=request.user))
+                # Also set assigned_sections so students can see the survey
+                survey.assigned_sections.set(Section.objects.filter(id__in=section_ids, teacher=request.user))
+            else:
+                # Clear assigned sections if none selected
+                survey.assigned_sections.clear()
 
             # Delete existing questions if updating
             if survey_id:
@@ -331,7 +463,9 @@ def get_survey_data(request, survey_id):
             'status': survey.status,
             'time_limit': survey.time_limit,
             'due_date': survey.due_date.isoformat() if survey.due_date else None,
-            'sections': list(survey.sections.values_list('id', flat=True)),
+            'start_date': survey.start_date.isoformat() if survey.start_date else None,
+            'end_date': survey.end_date.isoformat() if survey.end_date else None,
+            'sections': list(survey.assigned_sections.values_list('id', flat=True)),
             'questions': questions_data,
             'total_points': survey.total_points
         }
@@ -369,6 +503,42 @@ def delete_survey(request, survey_id):
             'success': False,
             'message': f'Error deleting survey: {str(e)}'
         }, status=500)
+
+
+@login_required
+def assign_survey_to_sections(request, survey_id):
+    """Assign survey to specific sections (teacher only)"""
+    if request.user.role != 'teacher':
+        messages.error(request, 'Only teachers can assign surveys.')
+        return redirect('survey_list')
+    
+    survey = get_object_or_404(Survey, id=survey_id, teacher=request.user)
+    
+    if request.method == 'POST':
+        section_ids = request.POST.getlist('sections')
+        survey.assigned_sections.clear()
+        
+        for section_id in section_ids:
+            try:
+                section = Section.objects.get(id=section_id, teacher=request.user)
+                survey.assigned_sections.add(section)
+            except Section.DoesNotExist:
+                pass
+        
+        messages.success(request, f'Survey "{survey.title}" assigned to selected sections.')
+        return redirect('survey_list')
+    
+    # GET request - show assignment form
+    teacher_sections = Section.objects.filter(teacher=request.user)
+    assigned_section_ids = survey.assigned_sections.values_list('id', flat=True)
+    
+    context = {
+        'survey': survey,
+        'sections': teacher_sections,
+        'assigned_section_ids': list(assigned_section_ids),
+        'user': request.user
+    }
+    return render(request, 'assign_survey.html', context)
 
 
 # Section Management Views
