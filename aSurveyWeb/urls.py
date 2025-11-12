@@ -13,6 +13,7 @@ urlpatterns = [
     path('student/surveys/', views.student_available_surveys, name='student_available_surveys'),
     path('student/surveys/pending/', views.student_pending_surveys, name='student_pending_surveys'),
     path('student/surveys/completed/', views.student_completed_surveys, name='student_completed_surveys'),
+    path('student/surveys/responses/<int:response_id>/', views.student_view_response, name='student_view_response'),
     path('student/surveys/<int:survey_id>/take/', views.take_survey, name='take_survey'),
     path('logout/', views.logoutPage, name='logout'),
     

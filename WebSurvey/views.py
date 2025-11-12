@@ -315,6 +315,36 @@ def student_completed_surveys(request):
     context.update(_get_student_survey_data(request.user))
     return render(request, 'student_completed_surveys.html', context)
 
+
+@login_required
+def student_view_response(request, response_id):
+    """Allow a student to review their submitted answers."""
+    if request.user.role != 'student':
+        messages.error(request, 'Only students can access this page.')
+        return redirect('dashboard')
+
+    response = get_object_or_404(
+        StudentResponse.objects.select_related('survey', 'survey__teacher'),
+        id=response_id,
+        student=request.user,
+        is_submitted=True
+    )
+
+    answers = (
+        response.answers
+        .select_related('question', 'selected_option')
+        .prefetch_related('question__enumeration_answers')
+        .order_by('question__order')
+    )
+
+    context = {
+        'user': request.user,
+        'response': response,
+        'survey': response.survey,
+        'answers': answers,
+    }
+    return render(request, 'student_view_response.html', context)
+
 def logoutPage(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')

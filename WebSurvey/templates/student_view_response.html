@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Completed Surveys - ResponsePro</title>
+    <title>Survey Response - ResponsePro</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
@@ -106,97 +106,80 @@
 
     <main class="dashboard-content" id="mainContent">
         <div class="content-header">
-            <h1>Completed Surveys</h1>
+            <h1>{{ survey.title }}</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'landing' %}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Completed Surveys</li>
+                    <li class="breadcrumb-item"><a href="{% url 'student_completed_surveys' %}">Completed Surveys</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Your Response</li>
                 </ol>
             </nav>
         </div>
 
         <div class="container-fluid px-4 pb-5">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            {% if not student_section %}
-            <div class="row">
-                <div class="col-12">
-                    <div class="dashboard-card text-center py-5">
-                        <i class="bx bx-user-x" style="font-size: 4rem; opacity: 0.3;"></i>
-                        <h5 class="mt-3 mb-2">No Section Assigned</h5>
-                        <p class="text-muted mb-0">Please contact your teacher so you can be added to a section and review completed surveys.</p>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="row">
-                <div class="col-12">
-                    <h5 class="mb-3">Submitted Surveys</h5>
-                </div>
-            </div>
-            <div class="row">
-                {% for response in completed_responses %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="dashboard-card h-100">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge bg-success">Submitted</span>
-                            <div class="dropdown">
-                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bx bx-dots-vertical-rounded" style="font-size: 1.5rem;"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'student_view_response' response.id %}">
-                                            <i class="bx bx-show-alt me-2"></i>View Response
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <h5 class="mb-2">{{ response.survey.title }}</h5>
-                        <p class="text-muted small mb-3">
-                            {{ response.survey.description|truncatewords:15|default:"No description" }}
-                        </p>
-
-                        <div class="d-flex justify-content-between text-muted small mb-3">
-                            <span><i class="bx bx-question-mark me-1"></i>{{ response.survey.questions.all|length }} questions</span>
-                            <span>
-                                <i class="bx bx-time-five me-1"></i>
-                                Submitted {{ response.submitted_at|date:"M d, Y" }}
-                            </span>
-                        </div>
-
-                        {% if response.score %}
-                        <div class="text-muted small mb-3">
-                            <i class="bx bx-star me-1"></i>Score: {{ response.score }}
-                        </div>
-                        {% endif %}
-
+            <div class="dashboard-card mb-4">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h4 class="mb-1">{{ survey.title }}</h4>
+                        <p class="text-muted mb-2">{{ survey.description|default:"No description provided." }}</p>
                         <div class="text-muted small">
-                            <i class="bx bx-user me-1"></i>{{ response.survey.teacher.get_full_name|default:response.survey.teacher.username }}
+                            <i class="bx bx-time-five me-1"></i>Submitted {{ response.submitted_at|date:"M d, Y g:i A" }}
+                            <span class="ms-3"><i class="bx bx-user me-1"></i>{{ survey.teacher.get_full_name|default:survey.teacher.username }}</span>
                         </div>
                     </div>
+                    <a href="{% url 'student_completed_surveys' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bx bx-arrow-back me-1"></i>Back to Completed
+                    </a>
                 </div>
-                {% empty %}
-                <div class="col-12">
-                    <div class="dashboard-card text-center py-5">
-                        <i class="bx bx-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
-                        <h5 class="mt-3 mb-2">No completed surveys yet</h5>
-                        <p class="text-muted mb-0">Submit a survey and it will appear here.</p>
-                    </div>
-                </div>
-                {% endfor %}
             </div>
-            {% endif %}
+
+            {% for answer in answers %}
+            <div class="dashboard-card mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="mb-1">Question {{ forloop.counter }}</h6>
+                        <p class="mb-0">{{ answer.question.question_text }}</p>
+                    </div>
+                    <span class="badge bg-light text-dark">{{ answer.question.get_question_type_display }}</span>
+                </div>
+                <div class="text-muted small mb-2">
+                    {% if answer.question.required %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Required</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Optional</span>
+                    {% endif %}
+                    <span class="ms-2">{{ answer.question.points }} pts</span>
+                </div>
+                <div class="response-box p-3 bg-light rounded">
+                    {% if answer.question.question_type == 'multiple_choice' %}
+                        {% if answer.selected_option %}
+                            <p class="mb-0"><strong>Your answer:</strong> {{ answer.selected_option.option_text }}</p>
+                        {% else %}
+                            <p class="mb-0 text-danger">No option selected.</p>
+                        {% endif %}
+                    {% elif answer.question.question_type == 'true_false' %}
+                        {% if answer.true_false_answer is not None %}
+                            <p class="mb-0"><strong>Your answer:</strong> {{ answer.true_false_answer|yesno:"True,False" }}</p>
+                        {% else %}
+                            <p class="mb-0 text-danger">No selection.</p>
+                        {% endif %}
+                    {% else %}
+                        {% if answer.text_answer %}
+                            <p class="mb-0" style="white-space: pre-wrap;"><strong>Your answer:</strong><br>{{ answer.text_answer }}</p>
+                        {% else %}
+                            <p class="mb-0 text-danger">No response provided.</p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="dashboard-card text-center py-5">
+                <i class="bx bx-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h5 class="mt-3 mb-2">No responses found</h5>
+                <p class="text-muted mb-0">It looks like your answers couldn't be loaded.</p>
+            </div>
+            {% endfor %}
         </div>
     </main>
 
