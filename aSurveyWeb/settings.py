@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'WebSurvey.middleware.AutoCloseSurveyMiddleware',
 ]
 
 ROOT_URLCONF = 'aSurveyWeb.urls'
@@ -108,7 +109,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Use Manila time (UTC+8) so due dates entered in the UI line up with local time
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 

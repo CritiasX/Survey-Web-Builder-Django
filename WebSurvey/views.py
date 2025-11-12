@@ -5,10 +5,126 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
-from .models import User, Section, Survey, Question, MultipleChoiceOption, TrueFalseAnswer, EnumerationAnswer
+from django.utils import timezone
+from .models import (
+    User,
+    Section,
+    Survey,
+    Question,
+    MultipleChoiceOption,
+    TrueFalseAnswer,
+    EnumerationAnswer,
+    StudentResponse,
+    QuestionAnswer,
+)
+from .services import auto_close_due_surveys, parse_due_date
 import json
 
 # Create your views here.
+
+
+def _get_student_survey_data(user):
+    """Return collections used by student survey pages."""
+    auto_close_due_surveys()
+    section = user.section
+    now = timezone.now()
+
+    available_surveys = []
+    pending_responses = []
+    completed_responses = []
+    responses_map = {}
+
+    if section:
+        base_surveys = (
+            Survey.objects.filter(sections=section, status__in=['published', 'closed'])
+            .select_related('teacher')
+            .prefetch_related('questions')
+            .distinct()
+        )
+        responses_qs = (
+            StudentResponse.objects.filter(
+                student=user,
+                survey__sections=section,
+                survey__status__in=['published', 'closed']
+            )
+            .select_related('survey', 'survey__teacher')
+            .prefetch_related('survey__questions')
+            .distinct()
+        )
+
+        for response in responses_qs:
+            responses_map[response.survey_id] = response
+            if response.is_submitted:
+                completed_responses.append(response)
+            else:
+                pending_responses.append(response)
+
+        for survey in base_surveys:
+            response = responses_map.get(survey.id)
+            if response and response.is_submitted:
+                continue
+            survey.student_response = response
+            survey.is_draft = bool(response and not response.is_submitted)
+            available_surveys.append(survey)
+
+    for survey in available_surveys:
+        survey.is_overdue = bool(survey.due_date and survey.due_date < now)
+        survey.is_closed = survey.status == 'closed'
+
+    for response in pending_responses:
+        survey = response.survey
+        response.is_overdue = bool(survey.due_date and survey.due_date < now)
+        response.is_closed = survey.status == 'closed'
+
+    available_active_count = sum(1 for survey in available_surveys if not survey.is_overdue and not survey.is_closed)
+
+    context = {
+        'student_section': section,
+        'available_surveys': available_surveys,
+        'pending_responses': pending_responses,
+        'completed_responses': completed_responses,
+        'available_survey_count': available_active_count,
+        'pending_survey_count': len(pending_responses),
+        'completed_survey_count': len(completed_responses),
+        'current_time': now,
+    }
+    return context
+
+
+def _save_student_answers(response, survey, post_data):
+    """Persist the student's answers for each question."""
+    for question in survey.questions.all():
+        answer, _ = QuestionAnswer.objects.get_or_create(
+            response=response,
+            question=question
+        )
+        field_name = f'question_{question.id}'
+
+        if question.question_type == 'multiple_choice':
+            option_id = post_data.get(field_name)
+            if option_id:
+                option = question.options.filter(id=option_id).first()
+                answer.selected_option = option
+            else:
+                answer.selected_option = None
+            answer.true_false_answer = None
+            answer.text_answer = ''
+
+        elif question.question_type == 'true_false':
+            raw_value = post_data.get(field_name)
+            if raw_value in ('true', 'false'):
+                answer.true_false_answer = (raw_value == 'true')
+            else:
+                answer.true_false_answer = None
+            answer.selected_option = None
+            answer.text_answer = ''
+
+        else:
+            answer.text_answer = post_data.get(field_name, '').strip()
+            answer.selected_option = None
+            answer.true_false_answer = None
+
+        answer.save()
 
 def landingPage(request):
     return render(request,'landingPage.html' )
@@ -148,11 +264,56 @@ def registerPage(request):
 
 @login_required
 def dashboardPage(request):
+    auto_close_due_surveys()
+    user = request.user
     context = {
-        'user': request.user,
-        'role': request.user.role
+        'user': user,
+        'role': user.role
     }
+
+    if user.role == 'teacher':
+        teacher_surveys = user.surveys.all().prefetch_related('questions', 'responses')
+        context.update({
+            'teacher_survey_count': teacher_surveys.count(),
+            'teacher_response_count': StudentResponse.objects.filter(survey__teacher=user).count(),
+            'teacher_surveys': teacher_surveys[:6]
+        })
+    else:
+        context.update(_get_student_survey_data(user))
+
     return render(request, 'dashboard.html', context)
+
+@login_required
+def student_available_surveys(request):
+    if request.user.role != 'student':
+        messages.error(request, 'Only students can access this page.')
+        return redirect('dashboard')
+
+    context = {'user': request.user}
+    context.update(_get_student_survey_data(request.user))
+    return render(request, 'student_available_surveys.html', context)
+
+
+@login_required
+def student_pending_surveys(request):
+    if request.user.role != 'student':
+        messages.error(request, 'Only students can access this page.')
+        return redirect('dashboard')
+
+    context = {'user': request.user}
+    context.update(_get_student_survey_data(request.user))
+    return render(request, 'student_pending_surveys.html', context)
+
+
+@login_required
+def student_completed_surveys(request):
+    if request.user.role != 'student':
+        messages.error(request, 'Only students can access this page.')
+        return redirect('dashboard')
+
+    context = {'user': request.user}
+    context.update(_get_student_survey_data(request.user))
+    return render(request, 'student_completed_surveys.html', context)
 
 def logoutPage(request):
     logout(request)
@@ -168,6 +329,7 @@ def survey_list(request):
         messages.error(request, 'Only teachers can access this page.')
         return redirect('dashboard')
 
+    auto_close_due_surveys()
     surveys = Survey.objects.filter(teacher=request.user)
     context = {
         'surveys': surveys,
@@ -183,6 +345,7 @@ def survey_builder(request, survey_id=None):
         messages.error(request, 'Only teachers can access this page.')
         return redirect('dashboard')
 
+    auto_close_due_surveys()
     survey = None
     if survey_id:
         survey = get_object_or_404(Survey, id=survey_id, teacher=request.user)
@@ -207,6 +370,7 @@ def save_survey(request):
     try:
         data = json.loads(request.body)
         survey_id = data.get('survey_id')
+        questions_provided = 'questions' in data
 
         with transaction.atomic():
             # Create or update survey
@@ -219,7 +383,7 @@ def save_survey(request):
             survey.description = data.get('description', '')
             survey.status = data.get('status', 'draft')
             survey.time_limit = data.get('time_limit')
-            survey.due_date = data.get('due_date')
+            survey.due_date = parse_due_date(data.get('due_date'))
             survey.save()
 
             # Handle sections
@@ -227,48 +391,45 @@ def save_survey(request):
             if section_ids:
                 survey.sections.set(Section.objects.filter(id__in=section_ids, teacher=request.user))
 
-            # Delete existing questions if updating
-            if survey_id:
-                survey.questions.all().delete()
+            if questions_provided:
+                if survey_id:
+                    survey.questions.all().delete()
 
-            # Create questions
-            questions_data = data.get('questions', [])
-            for idx, q_data in enumerate(questions_data):
-                question = Question.objects.create(
-                    survey=survey,
-                    question_type=q_data['type'],
-                    question_text=q_data['text'],
-                    points=q_data.get('points', 1),
-                    order=idx,
-                    required=q_data.get('required', True)
-                )
-
-                # Handle question type specific data
-                if q_data['type'] == 'multiple_choice':
-                    for opt_idx, option in enumerate(q_data.get('options', [])):
-                        MultipleChoiceOption.objects.create(
-                            question=question,
-                            option_text=option['text'],
-                            is_correct=option.get('is_correct', False),
-                            order=opt_idx
-                        )
-
-                elif q_data['type'] == 'true_false':
-                    TrueFalseAnswer.objects.create(
-                        question=question,
-                        is_true=q_data.get('correct_answer', True)
+                questions_data = data.get('questions') or []
+                for idx, q_data in enumerate(questions_data):
+                    question = Question.objects.create(
+                        survey=survey,
+                        question_type=q_data['type'],
+                        question_text=q_data['text'],
+                        points=q_data.get('points', 1),
+                        order=idx,
+                        required=q_data.get('required', True)
                     )
 
-                elif q_data['type'] == 'enumeration':
-                    for ans_idx, answer in enumerate(q_data.get('answers', [])):
-                        EnumerationAnswer.objects.create(
+                    if q_data['type'] == 'multiple_choice':
+                        for opt_idx, option in enumerate(q_data.get('options', [])):
+                            MultipleChoiceOption.objects.create(
+                                question=question,
+                                option_text=option['text'],
+                                is_correct=option.get('is_correct', False),
+                                order=opt_idx
+                            )
+
+                    elif q_data['type'] == 'true_false':
+                        TrueFalseAnswer.objects.create(
                             question=question,
-                            answer_text=answer,
-                            order=ans_idx
+                            is_true=q_data.get('correct_answer', True)
                         )
 
-            # Calculate total points
-            survey.calculate_total_points()
+                    elif q_data['type'] == 'enumeration':
+                        for ans_idx, answer in enumerate(q_data.get('answers', [])):
+                            EnumerationAnswer.objects.create(
+                                question=question,
+                                answer_text=answer,
+                                order=ans_idx
+                            )
+
+                survey.calculate_total_points()
 
             return JsonResponse({
                 'success': True,
@@ -291,6 +452,7 @@ def get_survey_data(request, survey_id):
         return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
 
     try:
+        auto_close_due_surveys()
         survey = get_object_or_404(Survey, id=survey_id, teacher=request.user)
 
         questions_data = []
@@ -369,6 +531,99 @@ def delete_survey(request, survey_id):
             'success': False,
             'message': f'Error deleting survey: {str(e)}'
         }, status=500)
+
+
+@login_required
+def take_survey(request, survey_id):
+    """Allow a student to answer a survey assigned to their section."""
+    if request.user.role != 'student':
+        messages.error(request, 'Only students can access this page.')
+        return redirect('dashboard')
+
+    auto_close_due_surveys()
+    survey = get_object_or_404(
+        Survey.objects.select_related('teacher')
+        .prefetch_related('questions__options', 'questions__enumeration_answers'),
+        id=survey_id,
+        status__in=['published', 'closed']
+    )
+    section = request.user.section
+
+    if not section or not survey.sections.filter(id=section.id).exists():
+        messages.error(request, 'This survey is not assigned to your section.')
+        return redirect('student_available_surveys')
+
+    if survey.status == 'closed':
+        messages.error(request, 'This survey is already closed.')
+        return redirect('student_available_surveys')
+
+    response = StudentResponse.objects.filter(survey=survey, student=request.user).select_related('survey').first()
+    if response and response.is_submitted:
+        messages.info(request, 'You have already submitted this survey.')
+        return redirect('student_completed_surveys')
+
+    if request.method == 'POST':
+        response, _ = StudentResponse.objects.get_or_create(
+            survey=survey,
+            student=request.user,
+            defaults={'is_submitted': False}
+        )
+        action = request.POST.get('action', 'draft')
+        _save_student_answers(response, survey, request.POST)
+
+        if action == 'submit':
+            missing_required = []
+            for question in survey.questions.all():
+                if not question.required:
+                    continue
+                answer = response.answers.filter(question=question).first()
+                if not answer:
+                    missing_required.append(question)
+                    continue
+
+                if question.question_type == 'multiple_choice':
+                    if not answer.selected_option_id:
+                        missing_required.append(question)
+                elif question.question_type == 'true_false':
+                    if answer.true_false_answer is None:
+                        missing_required.append(question)
+                else:
+                    if not answer.text_answer.strip():
+                        missing_required.append(question)
+
+            if missing_required:
+                messages.error(request, 'Please answer all required questions before submitting.')
+                return redirect('take_survey', survey_id=survey.id)
+
+            response.is_submitted = True
+            response.submitted_at = timezone.now()
+            response.save(update_fields=['is_submitted', 'submitted_at'])
+            messages.success(request, 'Survey submitted successfully!')
+            return redirect('student_completed_surveys')
+        else:
+            response.is_submitted = False
+            response.submitted_at = None
+            response.save(update_fields=['is_submitted', 'submitted_at'])
+            messages.success(request, 'Draft saved.')
+            return redirect('student_pending_surveys')
+
+    answer_map = {}
+    if response:
+        for answer in response.answers.select_related('selected_option'):
+            answer_map[answer.question_id] = answer
+
+    questions = list(survey.questions.all())
+    for question in questions:
+        question.existing_answer = answer_map.get(question.id)
+
+    context = {
+        'user': request.user,
+        'survey': survey,
+        'student_section': section,
+        'response': response,
+        'questions': questions,
+    }
+    return render(request, 'student_take_survey.html', context)
 
 
 # Section Management Views

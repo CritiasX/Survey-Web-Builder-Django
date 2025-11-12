@@ -10,6 +10,10 @@ urlpatterns = [
     path('contact/', views.contactPage, name='contact'),
     path('register/', views.registerPage, name='register'),
     path('dashboard/', views.dashboardPage, name='dashboard'),
+    path('student/surveys/', views.student_available_surveys, name='student_available_surveys'),
+    path('student/surveys/pending/', views.student_pending_surveys, name='student_pending_surveys'),
+    path('student/surveys/completed/', views.student_completed_surveys, name='student_completed_surveys'),
+    path('student/surveys/<int:survey_id>/take/', views.take_survey, name='take_survey'),
     path('logout/', views.logoutPage, name='logout'),
     
     # Survey builder URLs

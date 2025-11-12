@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Dashboard - ResponsePro</title>
+    <title>Available Surveys - ResponsePro</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
 </head>
 
-<body>
 <body>
     <!-- Sidebar Toggle Button -->
     <button class="sidebar-toggle shifted" id="sidebarToggle">
@@ -49,7 +48,7 @@
             <div class="nav-section-title">Main Menu</div>
 
             <div class="sidebar-nav-item">
-                <a href="{% url 'dashboard' %}" class="sidebar-nav-link active">
+                <a href="{% url 'dashboard' %}" class="sidebar-nav-link">
                     <i class="bx bx-home-alt"></i>
                     <span>Dashboard</span>
                 </a>
@@ -99,7 +98,7 @@
             <div class="nav-section-title">Surveys</div>
 
             <div class="sidebar-nav-item">
-                <a href="{% url 'student_available_surveys' %}" class="sidebar-nav-link">
+                <a href="{% url 'student_available_surveys' %}" class="sidebar-nav-link active">
                     <i class="bx bx-list-ul"></i>
                     <span>Available Surveys</span>
                 </a>
@@ -158,16 +157,17 @@
     <main class="dashboard-content" id="mainContent">
         <!-- Content Header -->
         <div class="content-header">
-            <h1>Dashboard</h1>
+            <h1>Available Surveys</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'landing' %}">Home</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Available Surveys</li>
                 </ol>
             </nav>
         </div>
 
-        <!-- Dashboard Content -->
+        <!-- Page Content -->
         <div class="container-fluid px-4 pb-5">
             {% if messages %}
                 {% for message in messages %}
@@ -177,132 +177,6 @@
                     </div>
                 {% endfor %}
             {% endif %}
-
-            <!-- Welcome Section -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="dashboard-card">
-                        <h3 class="mb-2">Welcome back, {{ user.first_name }}! 👋</h3>
-                        <p class="text-muted mb-0">Here's what's happening with your surveys today.</p>
-                    </div>
-                </div>
-            </div>
-
-            {% if user.role == 'teacher' %}
-            <!-- Teacher Dashboard -->
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card text-center">
-                        <div class="card-icon mx-auto" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                            <i class="bx bx-file"></i>
-                        </div>
-                        <h5 class="card-title mb-2">My Surveys</h5>
-                        <p class="display-4 mb-3 fw-bold text-primary">0</p>
-                        <a href="#" class="btn btn-primary">View All</a>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card text-center">
-                        <div class="card-icon mx-auto" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                            <i class="bx bx-group"></i>
-                        </div>
-                        <h5 class="card-title mb-2">Total Responses</h5>
-                        <p class="display-4 mb-3 fw-bold text-success">0</p>
-                        <a href="#" class="btn btn-success">View Details</a>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card text-center">
-                        <div class="card-icon mx-auto" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-                            <i class="bx bx-plus-circle"></i>
-                        </div>
-                        <h5 class="card-title mb-2">Create New</h5>
-                        <p class="mb-3" style="height: 3.5rem; display: flex; align-items: center; justify-content: center;">Start a new survey</p>
-                        <a href="{% url 'survey_create' %}" class="btn btn-info">Create Survey</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Surveys Table -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="dashboard-card">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0">Recent Surveys</h5>
-                            <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Survey Title</th>
-                                        <th>Status</th>
-                                        <th>Responses</th>
-                                        <th>Created</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            <i class="bx bx-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
-                                            <p class="mb-0">You haven't created any surveys yet. Start by creating your first survey!</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {% else %}
-            <!-- Student Dashboard -->
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card text-center">
-                        <div class="card-icon mx-auto" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                            <i class="bx bx-list-ul"></i>
-                        </div>
-                        <h5 class="card-title mb-2">Available Surveys</h5>
-                        <p class="display-4 mb-3 fw-bold text-primary">{{ available_survey_count|default:0 }}</p>
-                        <span class="text-muted small d-block">
-                            {% if student_section %}
-                                Assigned to {{ student_section.name }}
-                            {% else %}
-                                No section assigned
-                            {% endif %}
-                        </span>
-                        <a href="{% url 'student_available_surveys' %}" class="btn btn-primary mt-3">View All</a>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card text-center">
-                        <div class="card-icon mx-auto" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
-                            <i class="bx bx-check-circle"></i>
-                        </div>
-                        <h5 class="card-title mb-2">Completed</h5>
-                        <p class="display-4 mb-3 fw-bold text-success">{{ completed_survey_count|default:0 }}</p>
-                        <span class="text-muted small d-block">Surveys submitted</span>
-                        <a href="{% url 'student_completed_surveys' %}" class="btn btn-success mt-3">View History</a>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card text-center">
-                        <div class="card-icon mx-auto" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
-                            <i class="bx bx-time"></i>
-                        </div>
-                        <h5 class="card-title mb-2">Pending</h5>
-                        <p class="display-4 mb-3 fw-bold text-warning">{{ pending_survey_count|default:0 }}</p>
-                        <span class="text-muted small d-block">Waiting for submission</span>
-                        <a href="{% url 'student_pending_surveys' %}" class="btn btn-warning mt-3">View Drafts</a>
-                    </div>
-                </div>
-            </div>
 
             {% if not student_section %}
             <div class="row">
@@ -315,7 +189,6 @@
                 </div>
             </div>
             {% else %}
-            <!-- Available Surveys Grid -->
             <div class="row">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -323,7 +196,6 @@
                             <h5 class="mb-0">Available Surveys</h5>
                             <p class="text-muted mb-0">Surveys shared with {{ student_section.name }}</p>
                         </div>
-                        <a href="{% url 'student_available_surveys' %}" class="btn btn-sm btn-outline-primary">View All</a>
                     </div>
                 </div>
             </div>
@@ -390,30 +262,6 @@
                 {% endfor %}
             </div>
             {% endif %}
-            {% endif %}
-
-            <!-- Quick Stats Row -->
-            <div class="row mt-4">
-                <div class="col-md-6 mb-4">
-                    <div class="dashboard-card">
-                        <h5 class="mb-3">
-                            <i class="bx bx-trending-up text-success me-2"></i>
-                            Recent Activity
-                        </h5>
-                        <p class="text-muted">No recent activity to display.</p>
-                    </div>
-                </div>
-
-                <div class="col-md-6 mb-4">
-                    <div class="dashboard-card">
-                        <h5 class="mb-3">
-                            <i class="bx bx-bell text-warning me-2"></i>
-                            Notifications
-                        </h5>
-                        <p class="text-muted">You have no new notifications.</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </main>
 

@@ -718,8 +718,7 @@
                 time_limit: timeLimit || null,
                 due_date: dueDate || null,
                 status: status,
-                sections: sections,
-                questions: []
+                sections: sections
             };
 
             fetch('{% url "save_survey" %}', {
@@ -1071,4 +1070,3 @@
     </script>
 </body>
 </html>
-
