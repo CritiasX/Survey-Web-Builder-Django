@@ -77,16 +77,8 @@ WSGI_APPLICATION = 'aSurveyWeb.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'surveyweb',          # your database name
-        'USER': 'root',          # your DB user
-        'PASSWORD': 'password',  # your DB password
-        'HOST': '127.0.0.1',            # or your DB host
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
