@@ -128,8 +128,8 @@
                             <span class="ms-3"><i class="bx bx-user me-1"></i>{{ survey.teacher.get_full_name|default:survey.teacher.username }}</span>
                         </div>
                     </div>
-                    <a href="{% url 'student_completed_surveys' %}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bx bx-arrow-back me-1"></i>Back to Completed
+                    <a href="{% url 'student_history' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bx bx-arrow-back me-1"></i>Back to History
                     </a>
                 </div>
             </div>

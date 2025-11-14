@@ -73,7 +73,7 @@
             </div>
 
             <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'student_history' %}" class="sidebar-nav-link">
                     <i class="bx bx-history"></i>
                     <span>My History</span>
                 </a>
@@ -148,18 +148,6 @@
                     <div class="dashboard-card h-100">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <span class="badge bg-success">Submitted</span>
-                            <div class="dropdown">
-                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bx bx-dots-vertical-rounded" style="font-size: 1.5rem;"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'student_view_response' response.id %}">
-                                            <i class="bx bx-show-alt me-2"></i>View Response
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
                         </div>
 
                         <h5 class="mb-2">{{ response.survey.title }}</h5>

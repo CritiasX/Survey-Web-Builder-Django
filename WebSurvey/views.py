@@ -317,6 +317,18 @@ def student_completed_surveys(request):
 
 
 @login_required
+def student_history(request):
+    """Display student's response history with ability to view individual responses."""
+    if request.user.role != 'student':
+        messages.error(request, 'Only students can access this page.')
+        return redirect('dashboard')
+
+    context = {'user': request.user}
+    context.update(_get_student_survey_data(request.user))
+    return render(request, 'student_history.html', context)
+
+
+@login_required
 def student_view_response(request, response_id):
     """Allow a student to review their submitted answers."""
     if request.user.role != 'student':

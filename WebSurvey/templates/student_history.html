@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Pending Surveys - ResponsePro</title>
+    <title>My History - ResponsePro</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
@@ -49,7 +49,7 @@
                 </a>
             </div>
 
-            <div class="nav-section-title">Surveys</div>
+            <div class="nav-section-title">SURVEYS</div>
 
             <div class="sidebar-nav-item">
                 <a href="{% url 'student_available_surveys' %}" class="sidebar-nav-link">
@@ -66,37 +66,21 @@
             </div>
 
             <div class="sidebar-nav-item">
-                <a href="{% url 'student_pending_surveys' %}" class="sidebar-nav-link active">
+                <a href="{% url 'student_pending_surveys' %}" class="sidebar-nav-link">
                     <i class="bx bx-time"></i>
                     <span>Pending</span>
                 </a>
             </div>
 
             <div class="sidebar-nav-item">
-                <a href="{% url 'student_history' %}" class="sidebar-nav-link">
+                <a href="{% url 'student_history' %}" class="sidebar-nav-link active">
                     <i class="bx bx-history"></i>
                     <span>My History</span>
                 </a>
             </div>
-
-            <div class="nav-section-title">Account</div>
-
-            <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
-                    <i class="bx bx-user"></i>
-                    <span>Profile</span>
-                </a>
-            </div>
-
-            <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
-                    <i class="bx bx-cog"></i>
-                    <span>Settings</span>
-                </a>
-            </div>
         </nav>
 
-        <div class="sidebar-logout">
+        <div class="sidebar-footer">
             <a href="{% url 'logout' %}" class="logout-btn">
                 <i class="bx bx-log-out"></i>
                 <span>Logout</span>
@@ -106,12 +90,12 @@
 
     <main class="dashboard-content" id="mainContent">
         <div class="content-header">
-            <h1>Pending Surveys</h1>
+            <h1>My History</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'landing' %}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Pending Surveys</li>
+                    <li class="breadcrumb-item active" aria-current="page">My History</li>
                 </ol>
             </nav>
         </div>
@@ -132,73 +116,56 @@
                     <div class="dashboard-card text-center py-5">
                         <i class="bx bx-user-x" style="font-size: 4rem; opacity: 0.3;"></i>
                         <h5 class="mt-3 mb-2">No Section Assigned</h5>
-                        <p class="text-muted mb-0">Please contact your teacher so you can be added to a section and continue pending surveys.</p>
+                        <p class="text-muted mb-0">Please contact your teacher so you can be added to a section and view your history.</p>
                     </div>
                 </div>
             </div>
             {% else %}
             <div class="row">
                 <div class="col-12">
-                    <h5 class="mb-3">Draft Responses</h5>
+                    <h5 class="mb-3">Response History</h5>
                 </div>
             </div>
             <div class="row">
-                {% for response in pending_responses %}
+                {% for response in completed_responses %}
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="dashboard-card h-100">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge {% if response.is_overdue or response.is_closed %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                                {% if response.is_overdue or response.is_closed %}Closed{% else %}Draft{% endif %}
-                            </span>
-                        </div>
+                    <a href="{% url 'student_view_response' response.id %}" style="text-decoration: none; color: inherit;">
+                        <div class="dashboard-card h-100" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge bg-success">Submitted</span>
+                            </div>
 
-                        <h5 class="mb-2">{{ response.survey.title }}</h5>
-                        <p class="text-muted small mb-3">
-                            {{ response.survey.description|truncatewords:15|default:"No description" }}
-                        </p>
+                            <h5 class="mb-2">{{ response.survey.title }}</h5>
+                            <p class="text-muted small mb-3">
+                                {{ response.survey.description|truncatewords:15|default:"No description" }}
+                            </p>
 
-                        <div class="d-flex justify-content-between text-muted small mb-3">
-                            <span><i class="bx bx-question-mark me-1"></i>{{ response.survey.questions.all|length }} questions</span>
-                            <span>
-                                <i class="bx bx-time-five me-1"></i>
-                                {% if response.survey.due_date %}
-                                    {% if response.is_overdue or response.is_closed %}
-                                        Closed {{ response.survey.due_date|date:"M d, Y g:i A" }}
-                                    {% else %}
-                                        Due {{ response.survey.due_date|date:"M d, Y g:i A" }}
-                                    {% endif %}
-                                {% else %}
-                                    Started {{ response.started_at|date:"M d, Y" }}
-                                {% endif %}
-                            </span>
-                        </div>
+                            <div class="d-flex justify-content-between text-muted small mb-3">
+                                <span><i class="bx bx-question-mark me-1"></i>{{ response.survey.questions.all|length }} questions</span>
+                                <span>
+                                    <i class="bx bx-time-five me-1"></i>
+                                    Submitted {{ response.submitted_at|date:"M d, Y" }}
+                                </span>
+                            </div>
 
-                        <div class="text-muted small mb-3">
-                            <i class="bx bx-save me-1"></i>Started {{ response.started_at|date:"M d, Y" }}
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            {% if response.is_overdue or response.is_closed %}
-                            <a href="#"
-                               class="btn btn-secondary btn-sm disabled"
-                               aria-disabled="true">
-                                <i class="bx bx-lock me-1"></i>Closed
-                            </a>
-                            {% else %}
-                            <a href="{% url 'take_survey' response.survey.id %}"
-                               class="btn btn-warning btn-sm">
-                                <i class="bx bx-play-circle me-1"></i>Continue Survey
-                            </a>
+                            {% if response.score %}
+                            <div class="text-muted small mb-3">
+                                <i class="bx bx-star me-1"></i>Score: {{ response.score }}
+                            </div>
                             {% endif %}
+
+                            <div class="text-muted small">
+                                <i class="bx bx-user me-1"></i>{{ response.survey.teacher.get_full_name|default:response.survey.teacher.username }}
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 {% empty %}
                 <div class="col-12">
                     <div class="dashboard-card text-center py-5">
                         <i class="bx bx-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
-                        <h5 class="mt-3 mb-2">No drafts yet</h5>
-                        <p class="text-muted mb-0">Start a survey from the Available tab to see it here.</p>
+                        <h5 class="mt-3 mb-2">No response history yet</h5>
+                        <p class="text-muted mb-0">Submit a survey and it will appear here.</p>
                     </div>
                 </div>
                 {% endfor %}
