@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
 from django.utils import timezone
+from django.core.paginator import Paginator
+from django.db.models import Q
 from .models import (
     User,
     Section,
@@ -18,6 +20,8 @@ from .models import (
     QuestionAnswer,
 )
 from .services import auto_close_due_surveys, parse_due_date
+from django.shortcuts import render, get_object_or_404
+from .models import StudentResponse, QuestionAnswer
 import json
 
 # Create your views here.
@@ -836,3 +840,49 @@ def remove_student_from_section(request, section_id, user_id):
 
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Error removing student: {str(e)}'}, status=500)
+    
+@login_required
+def response_management(request):
+    """Table of student submissions with search + date filter + pagination"""
+    teacher = request.user
+
+    search_query = request.GET.get("search", "")
+    date_filter = request.GET.get("date", "")
+
+    # Explicit ordering fixes pagination warning
+    responses = StudentResponse.objects.filter(
+        survey__teacher=teacher,
+        is_submitted=True
+    ).select_related("student", "survey").order_by('-submitted_at')
+
+    if search_query:
+        responses = responses.filter(
+            Q(student__username__icontains=search_query) |
+            Q(student__first_name__icontains=search_query) |
+            Q(student__last_name__icontains=search_query) |
+            Q(survey__title__icontains=search_query)
+        )
+
+    if date_filter:
+        responses = responses.filter(submitted_at__date=date_filter)
+
+    paginator = Paginator(responses, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "responses.html", {
+        "page_obj": page_obj,
+        "search_query": search_query,
+        "date_filter": date_filter,
+    })
+
+
+def response_detail(request, pk):
+    response = get_object_or_404(StudentResponse, pk=pk)
+    answers = QuestionAnswer.objects.filter(response=response).order_by('question__order')
+    
+    context = {
+        'response': response,
+        'answers': answers
+    }
+    return render(request, 'response_detail.html', context)

@@ -32,4 +32,8 @@ urlpatterns = [
     path('sections/<int:section_id>/edit/', views.edit_section, name='edit_section'),
     path('sections/<int:section_id>/delete/', views.delete_section, name='delete_section'),
     path('sections/<int:section_id>/remove-student/<int:user_id>/', views.remove_student_from_section, name='remove_student_from_section'),
+
+    # Response Management URLs (Teacher only)
+    path('responses/', views.response_management, name='response_management'),
+    path('responses/<int:pk>/', views.response_detail, name='response_detail'),
 ]

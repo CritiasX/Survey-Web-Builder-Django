@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
 </head>
 
-<body>
+
 <body>
     <!-- Sidebar Toggle Button -->
     <button class="sidebar-toggle shifted" id="sidebarToggle">
@@ -49,7 +49,7 @@
             <div class="nav-section-title">Main Menu</div>
 
             <div class="sidebar-nav-item">
-                <a href="{% url 'dashboard' %}" class="sidebar-nav-link active">
+                <a href="{% url 'dashboard' %}" class="sidebar-nav-link">
                     <i class="bx bx-home-alt"></i>
                     <span>Dashboard</span>
                 </a>
@@ -87,12 +87,13 @@
                 </a>
             </div>
 
-            <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
-                    <i class="bx bx-group"></i>
-                    <span>Responses</span>
-                </a>
-            </div>
+           <div class="sidebar-nav-item">
+               <a href="{% url 'response_management' %}" class="sidebar-nav-link">
+               <i class="bx bx-group"></i>
+               <span>Responses</span>
+               </a>
+           </div>
+
 
             {% else %}
             <!-- Student Menu Items -->
@@ -156,7 +157,8 @@
 
     <!-- Main Content -->
     <main class="dashboard-content" id="mainContent">
-        <!-- Content Header -->
+        {% block content %}
+        <!-- Default Dashboard Content (fallback for when no child template overrides) -->
         <div class="content-header">
             <h1>Dashboard</h1>
             <nav aria-label="breadcrumb">
@@ -166,8 +168,8 @@
                 </ol>
             </nav>
         </div>
-
-        <!-- Dashboard Content -->
+        
+       <!-- Dashboard Content -->
         <div class="container-fluid px-4 pb-5">
             {% if messages %}
                 {% for message in messages %}
@@ -415,6 +417,7 @@
                 </div>
             </div>
         </div>
+        {% endblock %}
     </main>
 
     <!-- Scripts -->
