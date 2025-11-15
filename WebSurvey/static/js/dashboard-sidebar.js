@@ -1,7 +1,7 @@
 // Dashboard Sidebar Toggle Script
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.querySelector('.dashboard-sidebar');
-    const content = document.querySelector('.dashboard-content');
+    const content = document.querySelector('.dashboard-content') || document.querySelector('.main-content');
     const toggleBtn = document.querySelector('.sidebar-toggle');
 
     if (!sidebar || !content || !toggleBtn) return;

@@ -199,8 +199,8 @@
                             <i class="bx bx-file"></i>
                         </div>
                         <h5 class="card-title mb-2">My Surveys</h5>
-                        <p class="display-4 mb-3 fw-bold text-primary">0</p>
-                        <a href="#" class="btn btn-primary">View All</a>
+                        <p class="display-4 mb-3 fw-bold text-primary">{{ teacher_survey_count|default:0 }}</p>
+                        <a href="{% url 'survey_list' %}" class="btn btn-primary">View All</a>
                     </div>
                 </div>
 
@@ -210,8 +210,8 @@
                             <i class="bx bx-group"></i>
                         </div>
                         <h5 class="card-title mb-2">Total Responses</h5>
-                        <p class="display-4 mb-3 fw-bold text-success">0</p>
-                        <a href="#" class="btn btn-success">View Details</a>
+                        <p class="display-4 mb-3 fw-bold text-success">{{ teacher_response_count|default:0 }}</p>
+                        <a href="{% url 'response_management' %}" class="btn btn-success">View Details</a>
                     </div>
                 </div>
 
@@ -233,7 +233,7 @@
                     <div class="dashboard-card">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="mb-0">Recent Surveys</h5>
-                            <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                            <a href="{% url 'survey_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -247,12 +247,39 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {% if teacher_surveys %}
+                                        {% for survey in teacher_surveys %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ survey.title }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ survey.questions.count }} questions • {{ survey.total_points }} pts</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if survey.status == 'published' %}bg-success
+                                                    {% elif survey.status == 'draft' %}bg-secondary
+                                                    {% else %}bg-danger{% endif %}">
+                                                    {{ survey.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ survey.responses.count }}</td>
+                                            <td>{{ survey.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <a href="{% url 'survey_edit' survey.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bx bx-edit"></i> Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
                                     <tr>
                                         <td colspan="5" class="text-center text-muted py-4">
                                             <i class="bx bx-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
                                             <p class="mb-0">You haven't created any surveys yet. Start by creating your first survey!</p>
                                         </td>
                                     </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>

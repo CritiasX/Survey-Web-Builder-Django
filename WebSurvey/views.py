@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.db import transaction
 from django.utils import timezone
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
 from .models import (
     User,
     Section,
@@ -23,6 +23,7 @@ from .services import auto_close_due_surveys, parse_due_date
 from django.shortcuts import render, get_object_or_404
 from .models import StudentResponse, QuestionAnswer
 import json
+from collections import Counter
 
 # Create your views here.
 
@@ -869,11 +870,18 @@ def response_management(request):
     paginator = Paginator(responses, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+    
+    # Get unique surveys with responses for analytics dropdown
+    surveys_with_responses = Survey.objects.filter(
+        teacher=teacher,
+        responses__is_submitted=True
+    ).distinct().order_by('-created_at')
 
     return render(request, "responses.html", {
         "page_obj": page_obj,
         "search_query": search_query,
         "date_filter": date_filter,
+        "surveys_with_responses": surveys_with_responses,
     })
 
 
@@ -886,3 +894,115 @@ def response_detail(request, pk):
         'answers': answers
     }
     return render(request, 'response_detail.html', context)
+
+
+@login_required
+@login_required
+def survey_analytics(request, survey_id):
+    """Analytics page with pie charts, bar charts, and word clouds using Chart.js"""
+    survey = get_object_or_404(Survey, id=survey_id, teacher=request.user)
+    
+    # Get all submitted responses for this survey
+    responses = StudentResponse.objects.filter(
+        survey=survey,
+        is_submitted=True
+    ).select_related('student')
+    
+    # Get all questions for this survey
+    questions = survey.questions.all().prefetch_related(
+        'options',
+        'true_false_answer',
+        'enumeration_answers'
+    )
+    
+    charts_data = []
+    
+    for question in questions:
+        chart_info = {
+            'question_text': question.question_text,
+            'type': question.question_type,
+            'data': {}
+        }
+        
+        # Get all answers for this question
+        answers = QuestionAnswer.objects.filter(
+            question=question,
+            response__in=responses
+        )
+        
+        if question.question_type == 'multiple_choice':
+            # Prepare data for pie chart and bar chart
+            labels = []
+            values = []
+            for option in question.options.all():
+                count = answers.filter(selected_option=option).count()
+                labels.append(option.option_text)
+                values.append(count)
+            
+            if sum(values) > 0:
+                chart_info['data'] = {
+                    'labels': labels,
+                    'values': values
+                }
+        
+        elif question.question_type == 'true_false':
+            # Prepare data for true/false pie chart
+            true_count = answers.filter(true_false_answer=True).count()
+            false_count = answers.filter(true_false_answer=False).count()
+            
+            if true_count + false_count > 0:
+                chart_info['data'] = {
+                    'labels': ['True', 'False'],
+                    'values': [true_count, false_count]
+                }
+        
+        elif question.question_type == 'essay':
+            # Prepare word frequency data for word cloud
+            text_answers = answers.exclude(text_answer='').values_list('text_answer', flat=True)
+            
+            if text_answers:
+                # Combine all text and count word frequencies
+                combined_text = ' '.join(text_answers).lower()
+                words = combined_text.split()
+                # Filter out common words
+                stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
+                             'of', 'with', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+                             'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+                             'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those'}
+                words = [w for w in words if w not in stop_words and len(w) > 2]
+                word_freq = Counter(words)
+                top_words = word_freq.most_common(50)
+                
+                chart_info['data'] = {
+                    'words': [{'text': word, 'size': count} for word, count in top_words],
+                    'total_responses': len(text_answers)
+                }
+        
+        elif question.question_type == 'enumeration':
+            # Prepare word frequency data for enumeration
+            text_answers = answers.exclude(text_answer='').values_list('text_answer', flat=True)
+            
+            if text_answers:
+                combined_text = ' '.join(text_answers).lower()
+                words = combined_text.split()
+                stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+                             'of', 'with', 'is', 'are', 'was', 'were', 'be', 'been', 'being'}
+                words = [w for w in words if w not in stop_words and len(w) > 2]
+                word_freq = Counter(words)
+                top_words = word_freq.most_common(50)
+                
+                chart_info['data'] = {
+                    'words': [{'text': word, 'size': count} for word, count in top_words],
+                    'total_responses': len(text_answers)
+                }
+        
+        if chart_info['data']:
+            charts_data.append(chart_info)
+    
+    context = {
+        'survey': survey,
+        'charts_data': json.dumps(charts_data),
+        'total_responses': responses.count(),
+    }
+    
+    return render(request, 'survey_analytics.html', context)

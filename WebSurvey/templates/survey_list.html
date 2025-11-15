@@ -199,6 +199,11 @@
                             <a href="{% url 'survey_edit' survey.id %}" class="btn btn-outline-primary btn-sm">
                                 <i class="bx bx-edit me-1"></i>Edit Survey
                             </a>
+                            {% if survey.status == 'published' or survey.status == 'closed' %}
+                            <a href="{% url 'survey_analytics' survey.id %}" class="btn btn-outline-info btn-sm">
+                                <i class="bx bx-bar-chart-alt me-1"></i>View Analytics
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

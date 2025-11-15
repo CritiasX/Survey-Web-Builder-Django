@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+{% load static %}
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Survey Analytics - ResponsePro</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+    <style>
+        .analytics-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .chart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .chart-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .question-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #e0e7ff;
+            color: #4c51bf;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-weight: 600;
+        }
+        
+        .no-data-message {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle shifted" id="sidebarToggle">
+        <i class="bx bx-menu"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="bx bx-grid-alt" style="color: white;"></i>
+                </div>
+                <span>ResponsePro</span>
+            </a>
+        </div>
+
+        <!-- User Profile -->
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            </div>
+            <div class="user-info">
+                <h6>{{ user.first_name }} {{ user.last_name }}</h6>
+                <p>{{ user.get_role_display }}</p>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Main Menu</div>
+            <div class="sidebar-nav-item">
+                <a href="{% url 'dashboard' %}" class="sidebar-nav-link">
+                    <i class="bx bx-home-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section-title">Survey Management</div>
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-file"></i>
+                    <span>My Surveys</span>
+                </a>
+            </div>
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_create' %}" class="sidebar-nav-link">
+                    <i class="bx bx-plus-circle"></i>
+                    <span>Create Survey</span>
+                </a>
+            </div>
+            <div class="sidebar-nav-item">
+                <a href="{% url 'section_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-layer"></i>
+                    <span>Manage Sections</span>
+                </a>
+            </div>
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link active">
+                    <i class="bx bx-bar-chart-alt"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+            <div class="sidebar-nav-item">
+                <a href="{% url 'response_management' %}" class="sidebar-nav-link">
+                    <i class="bx bx-group"></i>
+                    <span>Responses</span>
+                </a>
+            </div>
+
+            <div class="nav-section-title">Account</div>
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="sidebar-nav-link logout">
+                <i class="bx bx-log-out"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-content" id="mainContent">
+        <div class="content-header">
+            <h1>Survey Analytics</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'landing' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'survey_list' %}">Surveys</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <div class="container-fluid px-4 pb-5">
+            <!-- Analytics Header -->
+            <div class="analytics-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="mb-2">
+                            <i class="bx bx-bar-chart-alt me-2"></i>Survey Analytics
+                        </h1>
+                        <h4 class="mb-0 opacity-90">{{ survey.title }}</h4>
+                        <p class="mb-0 mt-2 opacity-75">
+                            <i class="bx bx-group me-1"></i>Total Responses: {{ total_responses }}
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{% url 'survey_list' %}" class="btn btn-light">
+                            <i class="bx bx-arrow-back me-1"></i>Back to Surveys
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div id="chartsContainer"></div>
+            
+            <div id="noDataMessage" class="chart-card" style="display: none;">
+                <div class="no-data-message">
+                    <i class="bx bx-data" style="font-size: 4rem; opacity: 0.3;"></i>
+                    <h4 class="mt-3">No Data Available</h4>
+                    <p>There are no responses to analyze yet. Once students submit their responses, analytics will be displayed here.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/dashboard-sidebar.js' %}"></script>
+    
+    <script>
+        // Parse charts data from Django
+        const chartsData = {{ charts_data|safe }};
+        const chartsContainer = document.getElementById('chartsContainer');
+        const noDataMessage = document.getElementById('noDataMessage');
+        
+        if (!chartsData || chartsData.length === 0) {
+            noDataMessage.style.display = 'block';
+        } else {
+            // Color palettes
+            const colors = [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+            ];
+            
+            chartsData.forEach((chartInfo, index) => {
+                // Create chart card
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'chart-card';
+                
+                // Question header
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'question-header';
+                headerDiv.innerHTML = `
+                    <h5 class="mb-1">
+                        <i class="bx bx-question-mark me-2"></i>Question ${index + 1}
+                    </h5>
+                    <p class="mb-0">${chartInfo.question_text}</p>
+                `;
+                cardDiv.appendChild(headerDiv);
+                
+                // Question type badge
+                const badgeDiv = document.createElement('div');
+                badgeDiv.className = 'mb-3';
+                let badgeHTML = '';
+                switch(chartInfo.type) {
+                    case 'multiple_choice':
+                        badgeHTML = '<span class="badge bg-primary"><i class="bx bx-check-square me-1"></i>Multiple Choice</span>';
+                        break;
+                    case 'true_false':
+                        badgeHTML = '<span class="badge bg-info"><i class="bx bx-checkbox me-1"></i>True/False</span>';
+                        break;
+                    case 'essay':
+                        badgeHTML = '<span class="badge bg-success"><i class="bx bx-edit me-1"></i>Essay</span>';
+                        break;
+                    case 'enumeration':
+                        badgeHTML = '<span class="badge bg-warning text-dark"><i class="bx bx-list-ul me-1"></i>Enumeration</span>';
+                        break;
+                }
+                badgeDiv.innerHTML = badgeHTML;
+                cardDiv.appendChild(badgeDiv);
+                
+                // Create charts based on type
+                if (chartInfo.type === 'multiple_choice' || chartInfo.type === 'true_false') {
+                    // Create two canvas elements (pie and bar)
+                    const chartsRow = document.createElement('div');
+                    chartsRow.className = 'row mb-3';
+                    
+                    // Pie Chart
+                    const pieCol = document.createElement('div');
+                    pieCol.className = 'col-md-6 mb-3';
+                    pieCol.innerHTML = `
+                        <h6 class="text-center mb-3">Distribution (Pie Chart)</h6>
+                        <canvas id="pieChart${index}"></canvas>
+                    `;
+                    chartsRow.appendChild(pieCol);
+                    
+                    // Bar Chart
+                    const barCol = document.createElement('div');
+                    barCol.className = 'col-md-6 mb-3';
+                    barCol.innerHTML = `
+                        <h6 class="text-center mb-3">Response Count (Bar Chart)</h6>
+                        <canvas id="barChart${index}"></canvas>
+                    `;
+                    chartsRow.appendChild(barCol);
+                    
+                    cardDiv.appendChild(chartsRow);
+                    chartsContainer.appendChild(cardDiv);
+                    
+                    // Create Pie Chart
+                    const pieCtx = document.getElementById(`pieChart${index}`).getContext('2d');
+                    new Chart(pieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: chartInfo.data.labels,
+                            datasets: [{
+                                data: chartInfo.data.values,
+                                backgroundColor: colors,
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return `${label}: ${value} (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Create Bar Chart
+                    const barCtx = document.getElementById(`barChart${index}`).getContext('2d');
+                    new Chart(barCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartInfo.data.labels,
+                            datasets: [{
+                                label: 'Number of Responses',
+                                data: chartInfo.data.values,
+                                backgroundColor: colors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                    
+                } else if (chartInfo.type === 'essay' || chartInfo.type === 'enumeration') {
+                    // Word Cloud
+                    const wordCloudDiv = document.createElement('div');
+                    wordCloudDiv.className = 'mb-3';
+                    wordCloudDiv.innerHTML = `
+                        <h6 class="text-center mb-3">Word Cloud</h6>
+                        <canvas id="wordCloud${index}" width="800" height="400" style="width: 100%; height: auto; border: 1px solid #e0e0e0; border-radius: 8px;"></canvas>
+                        <p class="text-center text-muted mt-2">
+                            <i class="bx bx-info-circle me-1"></i>Total Responses: ${chartInfo.data.total_responses}
+                        </p>
+                    `;
+                    cardDiv.appendChild(wordCloudDiv);
+                    chartsContainer.appendChild(cardDiv);
+                    
+                    // Generate word cloud data
+                    const wordList = chartInfo.data.words.map(w => [w.text, w.size * 10]);
+                    
+                    // Create word cloud
+                    WordCloud(document.getElementById(`wordCloud${index}`), {
+                        list: wordList,
+                        gridSize: 8,
+                        weightFactor: 2,
+                        fontFamily: 'Lato, sans-serif',
+                        color: function() {
+                            const cloudColors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'];
+                            return cloudColors[Math.floor(Math.random() * cloudColors.length)];
+                        },
+                        rotateRatio: 0.3,
+                        backgroundColor: '#ffffff'
+                    });
+                } else {
+                    chartsContainer.appendChild(cardDiv);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

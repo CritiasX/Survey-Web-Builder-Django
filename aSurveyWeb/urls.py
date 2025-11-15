@@ -36,4 +36,7 @@ urlpatterns = [
     # Response Management URLs (Teacher only)
     path('responses/', views.response_management, name='response_management'),
     path('responses/<int:pk>/', views.response_detail, name='response_detail'),
+    
+    # Analytics URLs (Teacher only)
+    path('surveys/<int:survey_id>/analytics/', views.survey_analytics, name='survey_analytics'),
 ]
