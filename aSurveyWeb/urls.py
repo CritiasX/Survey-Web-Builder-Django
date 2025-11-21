@@ -38,5 +38,6 @@ urlpatterns = [
     path('responses/<int:pk>/', views.response_detail, name='response_detail'),
     
     # Analytics URLs (Teacher only)
+    path('analytics/', views.overall_analytics, name='overall_analytics'),
     path('surveys/<int:survey_id>/analytics/', views.survey_analytics, name='survey_analytics'),
 ]

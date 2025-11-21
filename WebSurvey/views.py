@@ -1006,3 +1006,33 @@ def survey_analytics(request, survey_id):
     }
     
     return render(request, 'survey_analytics.html', context)
+
+
+@login_required
+def overall_analytics(request):
+    """Simple overall analytics page showing combined data from all surveys"""
+    if request.user.role != 'teacher':
+        messages.error(request, "Access denied. Teacher account required.")
+        return redirect('dashboard')
+    
+    teacher = request.user
+    
+    # Get all surveys and responses
+    total_surveys = Survey.objects.filter(teacher=teacher).count()
+    total_responses = StudentResponse.objects.filter(
+        survey__teacher=teacher,
+        is_submitted=True
+    ).count()
+    
+    # Get surveys with their response counts
+    surveys = Survey.objects.filter(teacher=teacher).annotate(
+        response_count=Count('responses', filter=Q(responses__is_submitted=True))
+    ).order_by('-created_at')
+    
+    context = {
+        'total_surveys': total_surveys,
+        'total_responses': total_responses,
+        'surveys': surveys,
+    }
+    
+    return render(request, 'overall_analytics.html', context)
