@@ -32,7 +32,6 @@
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
         
@@ -73,7 +72,6 @@
         }
         
         .survey-card:hover {
-            transform: translateX(5px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
         }
         
@@ -177,8 +175,8 @@
         </nav>
 
         <!-- Logout Button -->
-        <div class="sidebar-footer">
-            <a href="{% url 'logout' %}" class="sidebar-nav-link logout">
+        <div class="sidebar-logout">
+            <a href="{% url 'logout' %}" class="logout-btn">
                 <i class="bx bx-log-out"></i>
                 <span>Logout</span>
             </a>
@@ -240,8 +238,8 @@
                             </h4>
                         </div>
                         <div class="card-body">
-                            {% if surveys %}
-                                {% for survey in surveys %}
+                            {% if page_obj %}
+                                {% for survey in page_obj %}
                                     <div class="survey-card">
                                         <div class="row align-items-center">
                                             <div class="col-md-6">
@@ -273,6 +271,29 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
                 </div>
             </div>
         </div>

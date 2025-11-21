@@ -133,7 +133,6 @@ body {
 .sidebar-nav-link:hover {
     background: var(--sidebar-hover);
     color: var(--sidebar-active);
-    transform: translateX(5px);
 }
 
 .sidebar-nav-link.active {
@@ -262,13 +261,12 @@ body {
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: all 0.2s ease;
+    transition: box-shadow 0.2s ease;
     margin-bottom: 1.5rem;
 }
 
 .dashboard-card:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
 }
 
 .dashboard-card .card-icon {

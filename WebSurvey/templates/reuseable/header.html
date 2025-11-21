@@ -69,17 +69,12 @@
         </div>
 
         <!-- Right: Action button (desktop) -->
-        <div class="header-right d-none d-md-flex align-items-center" style="justify-self: end;">
+        <div class="header-right d-none d-md-flex align-items-center gap-2" style="justify-self: end;">
             {% if user.is_authenticated %}
                 <a href="{% url 'dashboard' %}" class="btn btn-success text-uppercase px-4 ripple" style="font-family: 'Lato', sans-serif;">Dashboard</a>
             {% else %}
-                {% if request.path == '/login/' %}
-                    <a href="{% url 'register' %}" class="btn btn-primary text-uppercase px-4 ripple" id="auth-btn" style="font-family: 'Lato', sans-serif;">Register</a>
-                {% elif request.path == '/register/' %}
-                    <a href="{% url 'login' %}" class="btn btn-primary text-uppercase px-4 ripple" id="auth-btn" style="font-family: 'Lato', sans-serif;">Login</a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-primary text-uppercase px-4 ripple" id="auth-btn" style="font-family: 'Lato', sans-serif;">Login</a>
-                {% endif %}
+                <a href="{% url 'login' %}" class="btn btn-primary text-uppercase px-4 ripple" style="font-family: 'Lato', sans-serif;">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-outline-primary text-uppercase px-4 ripple" style="font-family: 'Lato', sans-serif;">Register</a>
             {% endif %}
         </div>
     </div>

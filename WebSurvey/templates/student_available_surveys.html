@@ -95,26 +95,10 @@
 
             {% else %}
             <!-- Student Menu Items -->
-            <div class="nav-section-title">Surveys</div>
-
             <div class="sidebar-nav-item">
                 <a href="{% url 'student_available_surveys' %}" class="sidebar-nav-link active">
                     <i class="bx bx-list-ul"></i>
-                    <span>Available Surveys</span>
-                </a>
-            </div>
-
-            <div class="sidebar-nav-item">
-                <a href="{% url 'student_completed_surveys' %}" class="sidebar-nav-link">
-                    <i class="bx bx-check-circle"></i>
-                    <span>Completed</span>
-                </a>
-            </div>
-
-            <div class="sidebar-nav-item">
-                <a href="{% url 'student_pending_surveys' %}" class="sidebar-nav-link">
-                    <i class="bx bx-time"></i>
-                    <span>Pending</span>
+                    <span>Surveys</span>
                 </a>
             </div>
 
@@ -157,12 +141,12 @@
     <main class="dashboard-content" id="mainContent">
         <!-- Content Header -->
         <div class="content-header">
-            <h1>Available Surveys</h1>
+            <h1>Surveys</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'landing' %}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Available Surveys</li>
+                    <li class="breadcrumb-item active" aria-current="page">Surveys</li>
                 </ol>
             </nav>
         </div>
@@ -191,72 +175,160 @@
             {% else %}
             <div class="row">
                 <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <h5 class="mb-0">Available Surveys</h5>
+                            <h5 class="mb-0">{{ filter_title }}</h5>
                             <p class="text-muted mb-0">Surveys shared with {{ student_section.name }}</p>
+                        </div>
+                        <div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bx bx-filter-alt me-1"></i>
+                                    {% if current_filter == 'available' %}Available
+                                    {% elif current_filter == 'pending' %}Pending
+                                    {% elif current_filter == 'completed' %}Completed
+                                    {% elif current_filter == 'closed' %}Closed
+                                    {% else %}Available{% endif %}
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                                    <li><a class="dropdown-item {% if current_filter == 'available' %}active{% endif %}" href="?filter=available">Available</a></li>
+                                    <li><a class="dropdown-item {% if current_filter == 'pending' %}active{% endif %}" href="?filter=pending">Pending</a></li>
+                                    <li><a class="dropdown-item {% if current_filter == 'completed' %}active{% endif %}" href="?filter=completed">Completed</a></li>
+                                    <li><a class="dropdown-item {% if current_filter == 'closed' %}active{% endif %}" href="?filter=closed">Closed</a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row">
-                {% for survey in available_surveys %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="dashboard-card h-100">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge
-                                {% if survey.is_overdue or survey.is_closed %}bg-danger
-                                {% elif survey.status == 'published' %}bg-success
-                                {% elif survey.status == 'draft' %}bg-secondary
-                                {% else %}bg-warning{% endif %}">
-                                {% if survey.is_overdue or survey.is_closed %}Closed{% else %}{{ survey.get_status_display }}{% endif %}
-                            </span>
-                        </div>
+                {% for item in filtered_surveys %}
+                    {% if is_response_list %}
+                        {# For pending/completed - item is a StudentResponse #}
+                        {% with survey=item.survey %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="dashboard-card h-100">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="badge
+                                        {% if item.is_overdue or item.is_closed %}bg-danger
+                                        {% elif item.is_submitted %}bg-success
+                                        {% else %}bg-warning{% endif %}">
+                                        {% if item.is_submitted %}Completed
+                                        {% elif item.is_overdue or item.is_closed %}Closed
+                                        {% else %}In Progress{% endif %}
+                                    </span>
+                                </div>
 
-                        <h5 class="mb-2">{{ survey.title }}</h5>
-                        <p class="text-muted small mb-3">
-                            {{ survey.description|truncatewords:15|default:"No description" }}
-                        </p>
+                                <h5 class="mb-2">{{ survey.title }}</h5>
+                                <p class="text-muted small mb-3">
+                                    {{ survey.description|truncatewords:15|default:"No description" }}
+                                </p>
 
-                        <div class="d-flex justify-content-between text-muted small mb-3">
-                            <span><i class="bx bx-question-mark me-1"></i>{{ survey.questions.all|length }} questions</span>
-                            <span>
-                                <i class="bx bx-time-five me-1"></i>
-                                {% if survey.due_date %}
-                                    {% if survey.is_overdue or survey.is_closed %}
-                                        Closed {{ survey.due_date|date:"M d, Y g:i A" }}
+                                <div class="d-flex justify-content-between text-muted small mb-3">
+                                    <span><i class="bx bx-question-mark me-1"></i>{{ survey.questions.all|length }} questions</span>
+                                    <span>
+                                        <i class="bx bx-time-five me-1"></i>
+                                        {% if item.is_submitted %}
+                                            Submitted {{ item.submitted_at|date:"M d, Y" }}
+                                        {% elif survey.due_date %}
+                                            Due {{ survey.due_date|date:"M d, Y" }}
+                                        {% else %}
+                                            {{ survey.created_at|date:"M d, Y" }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    {% if item.is_submitted %}
+                                        <a href="{% url 'student_view_response' item.id %}"
+                                           class="btn btn-success btn-sm">
+                                            <i class="bx bx-show me-1"></i>View Response
+                                        </a>
+                                    {% elif item.is_overdue or item.is_closed %}
+                                        <a href="#" class="btn btn-secondary btn-sm disabled" aria-disabled="true">
+                                            <i class="bx bx-lock me-1"></i>Closed
+                                        </a>
                                     {% else %}
-                                        Due {{ survey.due_date|date:"M d, Y g:i A" }}
+                                        <a href="{% url 'take_survey' survey.id %}"
+                                           class="btn btn-warning btn-sm">
+                                            <i class="bx bx-play-circle me-1"></i>Continue Survey
+                                        </a>
                                     {% endif %}
-                                {% else %}
-                                    {{ survey.created_at|date:"M d, Y" }}
-                                {% endif %}
-                            </span>
+                                </div>
+                            </div>
                         </div>
+                        {% endwith %}
+                    {% else %}
+                        {# For available/all - item is a Survey #}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="dashboard-card h-100">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="badge
+                                        {% if item.is_overdue or item.is_closed %}bg-danger
+                                        {% elif item.status == 'published' %}bg-success
+                                        {% elif item.status == 'draft' %}bg-secondary
+                                        {% else %}bg-warning{% endif %}">
+                                        {% if item.is_overdue or item.is_closed %}Closed{% else %}{{ item.get_status_display }}{% endif %}
+                                    </span>
+                                </div>
 
-                        <div class="d-grid gap-2">
-                            {% if survey.is_overdue or survey.is_closed %}
-                                <a href="#"
-                                   class="btn btn-secondary btn-sm disabled"
-                                   aria-disabled="true">
-                                    <i class="bx bx-lock me-1"></i>Closed
-                                </a>
-                            {% else %}
-                                <a href="{% url 'take_survey' survey.id %}"
-                                   class="btn {% if survey.is_draft %}btn-warning{% else %}btn-primary{% endif %} btn-sm">
-                                    <i class="bx bx-play-circle me-1"></i>
-                                    {% if survey.is_draft %}Continue Survey{% else %}Take Survey{% endif %}
-                                </a>
-                            {% endif %}
+                                <h5 class="mb-2">{{ item.title }}</h5>
+                                <p class="text-muted small mb-3">
+                                    {{ item.description|truncatewords:15|default:"No description" }}
+                                </p>
+
+                                <div class="d-flex justify-content-between text-muted small mb-3">
+                                    <span><i class="bx bx-question-mark me-1"></i>{{ item.questions.all|length }} questions</span>
+                                    <span>
+                                        <i class="bx bx-time-five me-1"></i>
+                                        {% if item.due_date %}
+                                            {% if item.is_overdue or item.is_closed %}
+                                                Closed {{ item.due_date|date:"M d, Y g:i A" }}
+                                            {% else %}
+                                                Due {{ item.due_date|date:"M d, Y g:i A" }}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ item.created_at|date:"M d, Y" }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    {% if item.is_overdue or item.is_closed %}
+                                        <a href="#"
+                                           class="btn btn-secondary btn-sm disabled"
+                                           aria-disabled="true">
+                                            <i class="bx bx-lock me-1"></i>Closed
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'take_survey' item.id %}"
+                                           class="btn {% if item.is_draft %}btn-warning{% else %}btn-primary{% endif %} btn-sm">
+                                            <i class="bx bx-play-circle me-1"></i>
+                                            {% if item.is_draft %}Continue Survey{% else %}Take Survey{% endif %}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    {% endif %}
                 {% empty %}
                 <div class="col-12">
                     <div class="dashboard-card text-center py-5">
                         <i class="bx bx-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
-                        <h5 class="mt-3 mb-2">No surveys available</h5>
-                        <p class="text-muted mb-0">Your teachers haven't assigned surveys to {{ student_section.name }} yet.</p>
+                        <h5 class="mt-3 mb-2">No surveys found</h5>
+                        <p class="text-muted mb-0">
+                            {% if current_filter == 'pending' %}
+                                You don't have any surveys in progress.
+                            {% elif current_filter == 'completed' %}
+                                You haven't completed any surveys yet.
+                            {% elif current_filter == 'closed' %}
+                                There are no closed surveys.
+                            {% elif current_filter == 'available' %}
+                                No surveys are currently available to take.
+                            {% else %}
+                                Your teachers haven't assigned surveys to {{ student_section.name }} yet.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
                 {% endfor %}

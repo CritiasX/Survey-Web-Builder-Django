@@ -25,7 +25,7 @@ body {
 
 /* Button hover animations */
 .btn {
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease;
     position: relative;
     overflow: hidden;
 }
@@ -49,22 +49,19 @@ body {
 }
 
 .btn:hover {
-    transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .btn:active {
-    transform: translateY(0);
 }
 
 /* Card hover animations */
 .card {
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease;
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card:hover {
-    transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
@@ -92,11 +89,10 @@ body {
 
 /* Form input animations */
 .form-control {
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .form-control:focus {
-    transform: scale(1.02);
     box-shadow: 0 0 0 0.2rem rgba(24, 188, 156, 0.25);
 }
 
@@ -125,7 +121,6 @@ img {
 }
 
 .card img:hover {
-    transform: scale(1.05);
 }
 
 /* Alert animations */
@@ -146,12 +141,11 @@ img {
 
 /* Footer links hover */
 footer a {
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
 }
 
 footer a:hover {
     color: #18BC9C !important;
-    transform: translateX(5px);
 }
 
 /* Section separator animation */
@@ -193,11 +187,10 @@ img {
 
 /* Hover lift effect for feature boxes */
 .feature-box {
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: box-shadow 0.3s ease;
 }
 
 .feature-box:hover {
-    transform: translateY(-10px) scale(1.02);
 }
 
 /* Text gradient animation on hover */

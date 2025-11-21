@@ -49,26 +49,10 @@
                 </a>
             </div>
 
-            <div class="nav-section-title">SURVEYS</div>
-
             <div class="sidebar-nav-item">
                 <a href="{% url 'student_available_surveys' %}" class="sidebar-nav-link">
                     <i class="bx bx-list-ul"></i>
-                    <span>Available Surveys</span>
-                </a>
-            </div>
-
-            <div class="sidebar-nav-item">
-                <a href="{% url 'student_completed_surveys' %}" class="sidebar-nav-link">
-                    <i class="bx bx-check-circle"></i>
-                    <span>Completed</span>
-                </a>
-            </div>
-
-            <div class="sidebar-nav-item">
-                <a href="{% url 'student_pending_surveys' %}" class="sidebar-nav-link">
-                    <i class="bx bx-time"></i>
-                    <span>Pending</span>
+                    <span>Surveys</span>
                 </a>
             </div>
 
@@ -78,9 +62,27 @@
                     <span>My History</span>
                 </a>
             </div>
+
+            <!-- Common Menu Items -->
+            <div class="nav-section-title">Account</div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
         </nav>
 
-        <div class="sidebar-footer">
+        <!-- Logout Button -->
+        <div class="sidebar-logout">
             <a href="{% url 'logout' %}" class="logout-btn">
                 <i class="bx bx-log-out"></i>
                 <span>Logout</span>
@@ -130,7 +132,7 @@
                 {% for response in completed_responses %}
                 <div class="col-md-6 col-lg-4 mb-4">
                     <a href="{% url 'student_view_response' response.id %}" style="text-decoration: none; color: inherit;">
-                        <div class="dashboard-card h-100" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+                        <div class="dashboard-card h-100" style="cursor: pointer;">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <span class="badge bg-success">Submitted</span>
                             </div>

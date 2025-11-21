@@ -65,6 +65,10 @@ def _get_student_survey_data(user):
                 pending_responses.append(response)
 
         for survey in base_surveys:
+            # Set status flags first
+            survey.is_overdue = bool(survey.due_date and survey.due_date < now)
+            survey.is_closed = survey.status == 'closed'
+            
             response = responses_map.get(survey.id)
             if response and response.is_submitted:
                 continue
@@ -72,16 +76,16 @@ def _get_student_survey_data(user):
             survey.is_draft = bool(response and not response.is_submitted)
             available_surveys.append(survey)
 
-    for survey in available_surveys:
-        survey.is_overdue = bool(survey.due_date and survey.due_date < now)
-        survey.is_closed = survey.status == 'closed'
-
     for response in pending_responses:
         survey = response.survey
-        response.is_overdue = bool(survey.due_date and survey.due_date < now)
-        response.is_closed = survey.status == 'closed'
+        survey.is_overdue = bool(survey.due_date and survey.due_date < now)
+        survey.is_closed = survey.status == 'closed'
+        response.is_overdue = survey.is_overdue
+        response.is_closed = survey.is_closed
 
     available_active_count = sum(1 for survey in available_surveys if not survey.is_overdue and not survey.is_closed)
+    # Count only pending responses that are not closed
+    pending_active_count = sum(1 for response in pending_responses if not response.is_overdue and not response.is_closed)
 
     context = {
         'student_section': section,
@@ -89,7 +93,7 @@ def _get_student_survey_data(user):
         'pending_responses': pending_responses,
         'completed_responses': completed_responses,
         'available_survey_count': available_active_count,
-        'pending_survey_count': len(pending_responses),
+        'pending_survey_count': pending_active_count,
         'completed_survey_count': len(completed_responses),
         'current_time': now,
     }
@@ -294,24 +298,65 @@ def student_available_surveys(request):
         messages.error(request, 'Only students can access this page.')
         return redirect('dashboard')
 
-    context = {'user': request.user}
-    context.update(_get_student_survey_data(request.user))
+    # Get filter parameter - default to 'available' to show open surveys
+    filter_type = request.GET.get('filter', 'available')
+    
+    context = {'user': request.user, 'current_filter': filter_type}
+    survey_data = _get_student_survey_data(request.user)
+    context.update(survey_data)
+    
+    # Apply filter to show different surveys based on dropdown selection
+    if filter_type == 'available':
+        # Show only published surveys that are not closed/overdue
+        available_only = [s for s in survey_data['available_surveys'] 
+                         if s.status == 'published' and not s.is_overdue and not s.is_closed]
+        context['filtered_surveys'] = available_only
+        context['filter_title'] = 'Available Surveys'
+        context['is_response_list'] = False
+    elif filter_type == 'pending':
+        # Show only pending responses that are not closed
+        pending_only = [r for r in survey_data['pending_responses'] 
+                       if not r.is_overdue and not r.is_closed]
+        context['filtered_surveys'] = pending_only
+        context['filter_title'] = 'Pending Surveys'
+        context['is_response_list'] = True
+    elif filter_type == 'completed':
+        context['filtered_surveys'] = survey_data['completed_responses']
+        context['filter_title'] = 'Completed Surveys'
+        context['is_response_list'] = True
+    elif filter_type == 'closed':
+        # Show only closed or overdue surveys
+        closed_only = [s for s in survey_data['available_surveys'] 
+                      if s.is_overdue or s.is_closed]
+        context['filtered_surveys'] = closed_only
+        context['filter_title'] = 'Closed Surveys'
+        context['is_response_list'] = False
+    else:  # 'all'
+        # For 'all', show all surveys including open, closed, and those with responses
+        all_surveys_list = []
+        # Add all available surveys (both open and closed)
+        all_surveys_list.extend(survey_data['available_surveys'])
+        context['filtered_surveys'] = all_surveys_list
+        context['filter_title'] = 'All Surveys'
+        context['is_response_list'] = False
+    
     return render(request, 'student_available_surveys.html', context)
 
 
 @login_required
 def student_pending_surveys(request):
-    if request.user.role != 'student':
-        messages.error(request, 'Only students can access this page.')
-        return redirect('dashboard')
-
-    context = {'user': request.user}
-    context.update(_get_student_survey_data(request.user))
-    return render(request, 'student_pending_surveys.html', context)
+    """Redirect to unified surveys page with pending filter"""
+    return redirect('/student/surveys/?filter=pending')
 
 
 @login_required
 def student_completed_surveys(request):
+    """Redirect to unified surveys page with completed filter"""
+    return redirect('/student/surveys/?filter=completed')
+
+
+@login_required
+def _old_student_completed_surveys(request):
     if request.user.role != 'student':
         messages.error(request, 'Only students can access this page.')
         return redirect('dashboard')
@@ -844,17 +889,18 @@ def remove_student_from_section(request, section_id, user_id):
     
 @login_required
 def response_management(request):
-    """Table of student submissions with search + date filter + pagination"""
+    """Table of student submissions with search + date filter + section filter + pagination"""
     teacher = request.user
 
     search_query = request.GET.get("search", "")
     date_filter = request.GET.get("date", "")
+    section_filter = request.GET.get("section", "")
 
     # Explicit ordering fixes pagination warning
     responses = StudentResponse.objects.filter(
         survey__teacher=teacher,
         is_submitted=True
-    ).select_related("student", "survey").order_by('-submitted_at')
+    ).select_related("student", "survey", "student__section").order_by('-submitted_at')
 
     if search_query:
         responses = responses.filter(
@@ -866,6 +912,9 @@ def response_management(request):
 
     if date_filter:
         responses = responses.filter(submitted_at__date=date_filter)
+    
+    if section_filter:
+        responses = responses.filter(student__section_id=section_filter)
 
     paginator = Paginator(responses, 10)
     page_number = request.GET.get("page")
@@ -876,12 +925,17 @@ def response_management(request):
         teacher=teacher,
         responses__is_submitted=True
     ).distinct().order_by('-created_at')
+    
+    # Get all sections for this teacher
+    sections = Section.objects.filter(teacher=teacher).order_by('name')
 
     return render(request, "responses.html", {
         "page_obj": page_obj,
         "search_query": search_query,
         "date_filter": date_filter,
+        "section_filter": section_filter,
         "surveys_with_responses": surveys_with_responses,
+        "sections": sections,
     })
 
 
@@ -1010,7 +1064,7 @@ def survey_analytics(request, survey_id):
 
 @login_required
 def overall_analytics(request):
-    """Simple overall analytics page showing combined data from all surveys"""
+    """Simple overall analytics page showing combined data from all surveys with pagination"""
     if request.user.role != 'teacher':
         messages.error(request, "Access denied. Teacher account required.")
         return redirect('dashboard')
@@ -1029,10 +1083,15 @@ def overall_analytics(request):
         response_count=Count('responses', filter=Q(responses__is_submitted=True))
     ).order_by('-created_at')
     
+    # Paginate surveys
+    paginator = Paginator(surveys, 10)  # 10 surveys per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
         'total_surveys': total_surveys,
         'total_responses': total_responses,
-        'surveys': surveys,
+        'page_obj': page_obj,
     }
     
     return render(request, 'overall_analytics.html', context)

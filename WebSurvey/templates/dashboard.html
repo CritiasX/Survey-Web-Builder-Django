@@ -97,31 +97,15 @@
 
             {% else %}
             <!-- Student Menu Items -->
-            <div class="nav-section-title">Surveys</div>
-
             <div class="sidebar-nav-item">
                 <a href="{% url 'student_available_surveys' %}" class="sidebar-nav-link">
                     <i class="bx bx-list-ul"></i>
-                    <span>Available Surveys</span>
+                    <span>Surveys</span>
                 </a>
             </div>
 
             <div class="sidebar-nav-item">
-                <a href="{% url 'student_completed_surveys' %}" class="sidebar-nav-link">
-                    <i class="bx bx-check-circle"></i>
-                    <span>Completed</span>
-                </a>
-            </div>
-
-            <div class="sidebar-nav-item">
-                <a href="{% url 'student_pending_surveys' %}" class="sidebar-nav-link">
-                    <i class="bx bx-time"></i>
-                    <span>Pending</span>
-                </a>
-            </div>
-
-            <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'student_history' %}" class="sidebar-nav-link">
                     <i class="bx bx-history"></i>
                     <span>My History</span>
                 </a>
