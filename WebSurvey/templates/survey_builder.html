@@ -90,6 +90,173 @@
             margin-top: 0.25rem;
         }
 
+        /* Context Elements Styling */
+        .element-item.context-element {
+            border-color: #e0e7ff;
+            background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+        }
+
+        .element-item.context-element:hover {
+            border-color: #a5b4fc;
+            box-shadow: 0 2px 8px rgba(165, 180, 252, 0.3);
+        }
+
+        .element-item.context-element i {
+            color: #6366f1;
+        }
+
+        /* Context Slot in Questions */
+        .context-slot {
+            background: #f8f9fa;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 60px;
+            transition: all 0.3s;
+        }
+
+        .context-slot.drag-over {
+            border-color: #6366f1;
+            border-style: solid;
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .context-slot.has-content {
+            border-style: solid;
+            border-color: #6366f1;
+            border-width: 2px;
+        }
+
+        .context-slot-empty {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+
+        .context-slot-empty i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.25rem;
+            opacity: 0.5;
+        }
+
+        .context-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .context-item.code-snippet {
+            border-left: 4px solid #f093fb;
+        }
+
+        .context-item.image {
+            border-left: 4px solid #4facfe;
+        }
+
+        .context-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .context-item-type {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6366f1;
+            text-transform: uppercase;
+        }
+
+        .context-item-remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .context-item-remove:hover {
+            background: #c0392b;
+        }
+
+        .context-code-textarea {
+            width: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 0.5rem;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .context-image-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            background: white;
+        }
+
+        .context-image-input::-webkit-file-upload-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+        }
+
+        .context-image-input::-webkit-file-upload-button:hover {
+            opacity: 0.9;
+        }
+
+        .context-image-preview {
+            margin-top: 0.5rem;
+            max-width: 100%;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Hide context elements in student view */
+        .student-view-mode .context-slot {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0;
+        }
+
+        .student-view-mode .context-slot-empty,
+        .student-view-mode .context-item-remove {
+            display: none !important;
+        }
+
+        .student-view-mode .context-item {
+            border: 1px solid #e9ecef;
+            margin-bottom: 1rem;
+        }
+
+        .student-view-mode .context-code-textarea {
+            pointer-events: none;
+            background: #f8f9fa;
+        }
+
         /* Builder Canvas */
         .builder-canvas {
             flex: 1;
@@ -255,6 +422,399 @@
             display: flex;
             gap: 1rem;
             z-index: 1000;
+            align-items: center;
+        }
+
+        /* Auto-save Status */
+        .autosave-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .autosave-status.saved {
+            color: #18bc9c;
+        }
+
+        .autosave-status.saving {
+            color: #3498db;
+        }
+
+        .autosave-status.error {
+            color: #e74c3c;
+        }
+
+        .autosave-status i.bx-loader-alt {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Palette Section Divider */
+        .palette-divider {
+            border-top: 2px solid #dee2e6;
+            margin: 1.5rem 0;
+            padding-top: 1rem;
+        }
+
+        .palette-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Better drag indicators for questions */
+        .question-card.drag-over-top {
+            border-top: 3px solid #18bc9c;
+        }
+
+        .question-card.drag-over-bottom {
+            border-bottom: 3px solid #18bc9c;
+        }
+
+        /* ========== STUDENT PREVIEW MODE - Beautiful & Professional ========== */
+
+        /* Hide all admin controls */
+        .student-view-mode .element-palette,
+        .student-view-mode .drag-handle,
+        .student-view-mode .question-actions,
+        .student-view-mode .btn-add-option,
+        .student-view-mode .btn-remove,
+        .student-view-mode .btn-outline-primary,
+        .student-view-mode input[type="radio"][name*="correct"],
+        .student-view-mode .question-tf-answer,
+        .student-view-mode .question-max-chars,
+        .student-view-mode .enum-answers-container,
+        .student-view-mode .row:has(.question-points),
+        .student-view-mode .question-header-left h5,
+        .student-view-mode .form-label,
+        .student-view-mode label {
+            display: none !important;
+        }
+
+        /* Layout adjustments */
+        .student-view-mode .main-content {
+            margin-left: 0;
+            background: #f8f9fa;
+        }
+
+        .student-view-mode .builder-canvas {
+            background: #f8f9fa;
+            padding: 2rem;
+        }
+
+        .student-view-mode .drop-zone {
+            border: none;
+            background: transparent;
+            padding: 0;
+            min-height: auto;
+        }
+
+        /* Beautiful question cards */
+        .student-view-mode .question-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e0e6ed;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            cursor: default;
+            border-left: 4px solid #18bc9c;
+            transition: box-shadow 0.2s;
+        }
+
+        .student-view-mode .question-card:hover {
+            transform: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        /* Question header styling */
+        .student-view-mode .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .student-view-mode .question-header-left {
+            flex: 1;
+        }
+
+        .student-view-mode .question-type-badge {
+            display: inline-block !important;
+            background: #f0f0f0;
+            color: #666;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .student-view-mode .question-text {
+            display: none !important;
+        }
+
+        /* Question number and text from JS */
+        .student-view-mode .student-question-number {
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-view-mode .student-points-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 1rem !important;
+            font-weight: 400;
+        }
+
+        /* Multiple choice options - beautiful styling */
+        .student-view-mode .options-container {
+            margin-top: 0.5rem;
+        }
+
+        .student-view-mode .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            gap: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .student-view-mode .option-item:hover {
+            background: #e8f4f8;
+            border-color: #18bc9c;
+        }
+
+        .student-view-mode .option-item::before {
+            display: none;
+        }
+
+        .student-view-mode .option-item input[type="radio"] {
+            display: inline-block !important;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .student-view-mode .option-item input[type="text"] {
+            border: none;
+            background: transparent;
+            padding: 0;
+            pointer-events: none;
+            flex: 1;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        /* True/False styling */
+        .student-view-mode .student-tf-radio {
+            display: flex;
+            gap: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        .student-view-mode .student-tf-radio .form-check {
+            padding: 0.75rem 1.5rem;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .student-view-mode .student-tf-radio .form-check:hover {
+            background: #e8f4f8;
+            border-color: #18bc9c;
+        }
+
+        .student-view-mode .student-tf-radio .form-check-input {
+            cursor: pointer;
+        }
+
+        .student-view-mode .student-tf-radio .form-check-label {
+            display: inline-block !important;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* Essay textarea styling */
+        .student-view-mode .student-essay-area textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #ffffff;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.2s;
+        }
+
+        .student-view-mode .student-essay-area textarea:focus {
+            outline: none;
+            border-color: #18bc9c;
+        }
+
+        /* Text elements - clean and minimal */
+        .student-view-mode .question-card[data-type="heading"],
+        .student-view-mode .question-card[data-type="subheading"],
+        .student-view-mode .question-card[data-type="paragraph"] {
+            border: none;
+            box-shadow: none;
+            background: transparent;
+            padding: 0.5rem 0;
+            border-left: none;
+        }
+
+        .student-view-mode .question-card[data-type="heading"] .question-text,
+        .student-view-mode .question-card[data-type="subheading"] .question-text,
+        .student-view-mode .question-card[data-type="paragraph"] .question-text {
+            display: block !important;
+            border: none;
+            background: transparent;
+            padding: 0;
+            pointer-events: none;
+            resize: none;
+            overflow: hidden;
+            color: #2c3e50;
+        }
+
+        .student-view-mode .question-card[data-type="heading"] .question-text {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .student-view-mode .question-card[data-type="subheading"] .question-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .student-view-mode .question-card[data-type="paragraph"] .question-text {
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        /* Context elements - clean and readable */
+        .student-view-mode .context-slot {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin-top: 1rem;
+        }
+
+        .student-view-mode .context-slot-empty {
+            display: none !important;
+        }
+
+        .student-view-mode .context-item {
+            background: #f8f9fa;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .student-view-mode .context-item-header {
+            margin-bottom: 0.75rem;
+        }
+
+        .student-view-mode .context-item-type {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6366f1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .student-view-mode .context-item-remove {
+            display: none !important;
+        }
+
+        .student-view-mode .context-code-textarea {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border: none;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            pointer-events: none;
+            resize: none;
+        }
+
+        .student-view-mode .context-image-input {
+            display: none !important;
+        }
+
+        .student-view-mode .context-image-preview {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .student-view-mode .question-card[data-type="heading"],
+        .student-view-mode .question-card[data-type="subheading"],
+        .student-view-mode .question-card[data-type="paragraph"] {
+            border-left: none;
+            box-shadow: none;
+            background: transparent;
+            padding: 1rem 0;
+        }
+
+        .student-view-mode .main-content {
+            margin-left: 0;
+        }
+
+        /* Preview Toggle Button */
+        .btn-preview-toggle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-preview-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-preview-toggle.active {
+            background: linear-gradient(135deg, #18bc9c 0%, #128f76 100%);
         }
 
         @media (max-width: 768px) {
@@ -381,8 +941,11 @@
         <!-- Element Palette Sidebar -->
         <div class="element-palette">
             <div class="palette-header">
-                <i class="bx bx-grid-alt"></i> Question Elements
+                <i class="bx bx-grid-alt"></i> Survey Elements
             </div>
+
+            <!-- Question Types Section -->
+            <div class="palette-section-title">Questions</div>
 
             <div class="element-item" draggable="true" data-type="multiple_choice">
                 <i class="bx bx-list-ul"></i>
@@ -413,6 +976,54 @@
                 <div>
                     <div class="element-label">Essay</div>
                     <div class="element-desc">Long text answer</div>
+                </div>
+            </div>
+
+            <!-- Text Elements Section -->
+            <div class="palette-divider"></div>
+            <div class="palette-section-title">Text Elements</div>
+
+            <div class="element-item" draggable="true" data-type="heading">
+                <i class="bx bx-heading"></i>
+                <div>
+                    <div class="element-label">Heading</div>
+                    <div class="element-desc">Large title text</div>
+                </div>
+            </div>
+
+            <div class="element-item" draggable="true" data-type="subheading">
+                <i class="bx bx-text"></i>
+                <div>
+                    <div class="element-label">Subheading</div>
+                    <div class="element-desc">Section subtitle</div>
+                </div>
+            </div>
+
+            <div class="element-item" draggable="true" data-type="paragraph">
+                <i class="bx bx-paragraph"></i>
+                <div>
+                    <div class="element-label">Paragraph</div>
+                    <div class="element-desc">Regular text</div>
+                </div>
+            </div>
+
+            <!-- Context Elements Section -->
+            <div class="palette-divider"></div>
+            <div class="palette-section-title">Context Elements</div>
+
+            <div class="element-item context-element" draggable="true" data-type="code_snippet">
+                <i class="bx bx-code-alt"></i>
+                <div>
+                    <div class="element-label">Code Snippet</div>
+                    <div class="element-desc">Add code example</div>
+                </div>
+            </div>
+
+            <div class="element-item context-element" draggable="true" data-type="image">
+                <i class="bx bx-image"></i>
+                <div>
+                    <div class="element-label">Image</div>
+                    <div class="element-desc">Upload image file</div>
                 </div>
             </div>
         </div>
@@ -519,11 +1130,19 @@
 
         <!-- Save Actions (only show in questions mode) -->
         <div class="save-actions" id="saveActions" {% if not survey %}style="display: none;"{% endif %}>
-            <button class="btn btn-secondary" onclick="window.location.href='{% url 'survey_list' %}'">
-                <i class="bx bx-x"></i> Done
+            <div class="autosave-status saved" id="autosaveStatus">
+                <i class="bx bx-check-circle"></i>
+                <span>All changes saved</span>
+            </div>
+            <button class="btn-preview-toggle" id="previewToggleBtn" onclick="toggleStudentView()">
+                <i class="bx bx-show"></i>
+                <span>Student Preview</span>
+            </button>
+            <button class="btn btn-secondary" onclick="cancelChanges()">
+                <i class="bx bx-x"></i> Cancel Changes
             </button>
             <button class="btn btn-success" onclick="saveQuestions()">
-                <i class="bx bx-save"></i> Save Questions
+                <i class="bx bx-save"></i> Save
             </button>
         </div>
     </main>
@@ -632,6 +1251,9 @@
             const dropZone = document.getElementById('dropZone');
             const questionsContainer = document.getElementById('questionsContainer');
 
+            let draggedOverCard = null;
+            let insertPosition = 'after'; // 'before' or 'after'
+
             // Drag start from palette
             elementItems.forEach(item => {
                 item.addEventListener('dragstart', (e) => {
@@ -650,11 +1272,21 @@
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
                 dropZone.classList.add('drag-over');
+
+                // If dragging over a question card, track position
+                const target = e.target.closest('.question-card');
+                if (target && draggedElement) {
+                    const bounding = target.getBoundingClientRect();
+                    const offset = e.clientY - bounding.top;
+                    insertPosition = offset < bounding.height / 2 ? 'before' : 'after';
+                    draggedOverCard = target;
+                }
             });
 
             dropZone.addEventListener('dragleave', (e) => {
                 if (e.target === dropZone) {
                     dropZone.classList.remove('drag-over');
+                    draggedOverCard = null;
                 }
             });
 
@@ -663,8 +1295,24 @@
                 dropZone.classList.remove('drag-over');
 
                 if (draggedElement) {
+                    // Create the new question
+                    const newQuestionId = questionCounter + 1;
                     addQuestion(draggedElement);
+
+                    // If we were dragging over a card, insert at that position
+                    if (draggedOverCard) {
+                        const newCard = document.getElementById(`question-${newQuestionId}`);
+                        if (newCard) {
+                            if (insertPosition === 'before') {
+                                questionsContainer.insertBefore(newCard, draggedOverCard);
+                            } else {
+                                questionsContainer.insertBefore(newCard, draggedOverCard.nextSibling);
+                            }
+                        }
+                    }
+
                     draggedElement = null;
+                    draggedOverCard = null;
                 } else if (draggedQuestionCard) {
                     // Reordering - handled by question card drop
                 }
@@ -672,28 +1320,74 @@
         }
 
         function makeQuestionDraggable(questionCard) {
+            const dragHandle = questionCard.querySelector('.drag-handle');
+
+            // Make entire card draggable, not just handle
             questionCard.draggable = true;
+            questionCard.style.cursor = 'move';
+
+            // Prevent dragging when interacting with inputs
+            const inputs = questionCard.querySelectorAll('input, textarea, select, button');
+            inputs.forEach(input => {
+                input.addEventListener('mousedown', (e) => {
+                    questionCard.draggable = false;
+                });
+                input.addEventListener('mouseup', (e) => {
+                    questionCard.draggable = true;
+                });
+            });
 
             questionCard.addEventListener('dragstart', (e) => {
                 draggedQuestionCard = questionCard;
                 questionCard.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
+
+                // Add ghost image effect
+                setTimeout(() => {
+                    questionCard.style.opacity = '0.5';
+                }, 0);
             });
 
             questionCard.addEventListener('dragend', (e) => {
                 questionCard.classList.remove('dragging');
+                questionCard.style.opacity = '1';
                 draggedQuestionCard = null;
+
+                // Remove all drag indicators
+                document.querySelectorAll('.question-card').forEach(card => {
+                    card.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+
+                markUnsavedChanges();
             });
 
             questionCard.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                const afterElement = getDragAfterElement(document.getElementById('questionsContainer'), e.clientY);
-                const container = document.getElementById('questionsContainer');
+                if (draggedQuestionCard === questionCard) return;
 
-                if (afterElement == null) {
-                    container.appendChild(draggedQuestionCard);
+                const container = document.getElementById('questionsContainer');
+                const bounding = questionCard.getBoundingClientRect();
+                const offset = e.clientY - bounding.top;
+                const half = bounding.height / 2;
+
+                // Clear previous indicators
+                document.querySelectorAll('.question-card').forEach(card => {
+                    card.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+
+                // Add indicator based on position
+                if (offset < half) {
+                    questionCard.classList.add('drag-over-top');
+                    container.insertBefore(draggedQuestionCard, questionCard);
                 } else {
-                    container.insertBefore(draggedQuestionCard, afterElement);
+                    questionCard.classList.add('drag-over-bottom');
+                    container.insertBefore(draggedQuestionCard, questionCard.nextSibling);
+                }
+            });
+
+            questionCard.addEventListener('dragleave', (e) => {
+                if (e.target === questionCard) {
+                    questionCard.classList.remove('drag-over-top', 'drag-over-bottom');
                 }
             });
         }
@@ -811,39 +1505,79 @@
                 'multiple_choice': 'Multiple Choice',
                 'true_false': 'True/False',
                 'enumeration': 'Enumeration',
-                'essay': 'Essay'
+                'essay': 'Essay',
+                'heading': 'Heading',
+                'subheading': 'Subheading',
+                'paragraph': 'Paragraph'
             };
 
-            let questionHtml = `
-                <div class="question-header">
-                    <div class="question-header-left">
-                        <i class="bx bx-menu drag-handle"></i>
-                        <span class="question-type-badge">${typeLabels[type]}</span>
-                        <h5 class="mb-0">Question ${questionCounter}</h5>
-                    </div>
-                    <div class="question-actions">
-                        <button class="btn btn-sm btn-danger" onclick="removeQuestion(${questionCounter})">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Question Text</label>
-                    <input type="text" class="form-control question-text" placeholder="Enter question text">
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Points</label>
-                        <input type="number" class="form-control question-points" value="1" min="0">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input question-required" type="checkbox" checked>
-                            <label class="form-check-label">Required</label>
+            let questionHtml = '';
+
+            // Handle text elements differently (no points, no required, etc.)
+            if (type === 'heading' || type === 'subheading' || type === 'paragraph') {
+                const placeholders = {
+                    'heading': 'Enter heading text...',
+                    'subheading': 'Enter subheading text...',
+                    'paragraph': 'Enter paragraph text...'
+                };
+
+                const fontSizes = {
+                    'heading': '2rem',
+                    'subheading': '1.5rem',
+                    'paragraph': '1rem'
+                };
+
+                questionHtml = `
+                    <div class="question-header">
+                        <div class="question-header-left">
+                            <i class="bx bx-menu drag-handle"></i>
+                            <span class="question-type-badge" style="background: #6c757d;">${typeLabels[type]}</span>
+                        </div>
+                        <div class="question-actions">
+                            <button class="btn btn-sm btn-danger" onclick="removeQuestion(${questionCounter})">
+                                <i class="bx bx-trash"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-            `;
+                    <div class="mb-3">
+                        <textarea class="form-control question-text" rows="${type === 'paragraph' ? 4 : 2}"
+                            placeholder="${placeholders[type]}"
+                            style="font-size: ${fontSizes[type]}; font-weight: ${type === 'heading' ? 'bold' : type === 'subheading' ? '600' : 'normal'};"></textarea>
+                    </div>
+                `;
+            } else {
+                // Regular question elements
+                questionHtml = `
+                    <div class="question-header">
+                        <div class="question-header-left">
+                            <i class="bx bx-menu drag-handle"></i>
+                            <span class="question-type-badge">${typeLabels[type]}</span>
+                            <h5 class="mb-0">Question ${questionCounter}</h5>
+                        </div>
+                        <div class="question-actions">
+                            <button class="btn btn-sm btn-danger" onclick="removeQuestion(${questionCounter})">
+                                <i class="bx bx-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Question Text</label>
+                        <input type="text" class="form-control question-text" placeholder="Enter question text">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Points</label>
+                            <input type="number" class="form-control question-points" value="1" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input question-required" type="checkbox" checked>
+                                <label class="form-check-label">Required</label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
 
             if (type === 'multiple_choice') {
                 questionHtml += `
@@ -895,11 +1629,29 @@
                 `;
             }
 
+            // Add context slot for regular questions (not text elements)
+            if (type !== 'heading' && type !== 'subheading' && type !== 'paragraph') {
+                questionHtml += `
+                    <div class="context-slot" id="context-slot-${questionCounter}" data-question-id="${questionCounter}">
+                        <div class="context-slot-empty">
+                            <i class="bx bx-plus-circle"></i>
+                            Drag context elements here (code snippet or image)
+                        </div>
+                        <div class="context-items-container" id="context-items-${questionCounter}"></div>
+                    </div>
+                `;
+            }
+
             questionCard.innerHTML = questionHtml;
             container.appendChild(questionCard);
 
             // Make the question card draggable for reordering
             makeQuestionDraggable(questionCard);
+
+            // Setup context slot drag and drop if it's a question
+            if (type !== 'heading' && type !== 'subheading' && type !== 'paragraph') {
+                setupContextSlotDragDrop(questionCounter);
+            }
 
             // Update empty state
             updateDropZoneEmpty();
@@ -908,6 +1660,161 @@
         function removeQuestion(id) {
             questionToDelete = id;
             deleteModalInstance.show();
+        }
+
+        function cancelChanges() {
+            if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+                window.location.href = '{% url "survey_list" %}';
+            }
+        }
+
+        // Setup context slot for drag and drop
+        function setupContextSlotDragDrop(questionId) {
+            const contextSlot = document.getElementById(`context-slot-${questionId}`);
+            if (!contextSlot) return;
+
+            contextSlot.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                contextSlot.classList.add('drag-over');
+            });
+
+            contextSlot.addEventListener('dragleave', (e) => {
+                if (e.target === contextSlot) {
+                    contextSlot.classList.remove('drag-over');
+                }
+            });
+
+            contextSlot.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                contextSlot.classList.remove('drag-over');
+
+                if (draggedElement === 'code_snippet' || draggedElement === 'image') {
+                    addContextToQuestion(questionId, draggedElement);
+                    draggedElement = null;
+                }
+            });
+        }
+
+        // Add context element to a question
+        function addContextToQuestion(questionId, contextType) {
+            const container = document.getElementById(`context-items-${questionId}`);
+            const contextSlot = document.getElementById(`context-slot-${questionId}`);
+            const emptyState = contextSlot.querySelector('.context-slot-empty');
+
+            const contextId = `context-${questionId}-${Date.now()}`;
+
+            let contextHtml = '';
+
+            if (contextType === 'code_snippet') {
+                contextHtml = `
+                    <div class="context-item code-snippet" id="${contextId}">
+                        <div class="context-item-header">
+                            <span class="context-item-type">Code Snippet</span>
+                            <button class="context-item-remove" onclick="removeContext('${contextId}', ${questionId})">
+                                <i class="bx bx-x"></i>
+                            </button>
+                        </div>
+                        <textarea class="context-code-textarea" placeholder="Paste your code here..."></textarea>
+                    </div>
+                `;
+            } else if (contextType === 'image') {
+                contextHtml = `
+                    <div class="context-item image" id="${contextId}">
+                        <div class="context-item-header">
+                            <span class="context-item-type">Image</span>
+                            <button class="context-item-remove" onclick="removeContext('${contextId}', ${questionId})">
+                                <i class="bx bx-x"></i>
+                            </button>
+                        </div>
+                        <input type="file" class="context-image-input" accept="image/*" onchange="handleImageUpload(this, '${contextId}')" style="margin-bottom: 0.5rem;">
+                        <div id="${contextId}-preview"></div>
+                    </div>
+                `;
+            }
+
+            container.insertAdjacentHTML('beforeend', contextHtml);
+
+            // Hide empty state and mark as has content
+            if (emptyState) emptyState.style.display = 'none';
+            contextSlot.classList.add('has-content');
+
+            markUnsavedChanges();
+        }
+
+        function removeContext(contextId, questionId) {
+            const contextItem = document.getElementById(contextId);
+            if (contextItem) {
+                contextItem.remove();
+                markUnsavedChanges();
+
+                // Check if container is empty
+                const container = document.getElementById(`context-items-${questionId}`);
+                const contextSlot = document.getElementById(`context-slot-${questionId}`);
+                const emptyState = contextSlot.querySelector('.context-slot-empty');
+
+                if (container.children.length === 0) {
+                    if (emptyState) emptyState.style.display = 'block';
+                    contextSlot.classList.remove('has-content');
+                }
+            }
+        }
+
+        function handleImageUpload(input, contextId) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                input.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size should be less than 5MB');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                const previewContainer = document.getElementById(`${contextId}-preview`);
+
+                // Store the base64 data in a data attribute
+                input.dataset.imageData = imageData;
+
+                // Show preview
+                previewContainer.innerHTML = `
+                    <img src="${imageData}" class="context-image-preview" style="max-width: 100%; margin-top: 0.5rem; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                `;
+
+                markUnsavedChanges();
+            };
+
+            reader.onerror = function() {
+                alert('Error reading file');
+                input.value = '';
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function updateImagePreview(input, contextId) {
+            // This function is kept for backward compatibility but now uses handleImageUpload
+            const previewContainer = document.getElementById(`${contextId}-preview`);
+            const url = input.value.trim();
+
+            if (url) {
+                previewContainer.innerHTML = `<img src="${url}" class="context-image-preview" onerror="this.style.display='none'" onload="this.style.display='block'">`;
+            } else {
+                previewContainer.innerHTML = '';
+            }
+
+            markUnsavedChanges();
         }
 
         function addOption(questionId) {
@@ -1102,6 +2009,309 @@
                 }
             });
         }
+
+        // Student Preview Toggle
+        function toggleStudentView() {
+            const body = document.body;
+            const btn = document.getElementById('previewToggleBtn');
+            const btnText = btn.querySelector('span');
+            const btnIcon = btn.querySelector('i');
+
+            body.classList.toggle('student-view-mode');
+            btn.classList.toggle('active');
+
+            if (body.classList.contains('student-view-mode')) {
+                btnText.textContent = 'Exit Preview';
+                btnIcon.className = 'bx bx-edit';
+                applyStudentViewFormatting();
+            } else {
+                btnText.textContent = 'Student Preview';
+                btnIcon.className = 'bx bx-show';
+                removeStudentViewFormatting();
+            }
+        }
+
+        function applyStudentViewFormatting() {
+            const questionCards = document.querySelectorAll('.question-card');
+            let questionNumber = 1;
+
+            questionCards.forEach(card => {
+                const type = card.dataset.type;
+
+                // Skip text elements (they don't have numbers)
+                if (type === 'heading' || type === 'subheading' || type === 'paragraph') {
+                    return;
+                }
+
+                // Add question number to header
+                const headerLeft = card.querySelector('.question-header-left');
+                if (headerLeft && !headerLeft.querySelector('.student-question-number')) {
+                    const questionText = card.querySelector('.question-text');
+                    const questionTextValue = questionText ? questionText.value : 'Question';
+
+                    const numberSpan = document.createElement('h5');
+                    numberSpan.className = 'student-question-number mb-0';
+                    numberSpan.style.cssText = 'font-size: 1rem; font-weight: 600; flex: 1;';
+                    numberSpan.textContent = `${questionNumber}. ${questionTextValue}`;
+                    headerLeft.insertBefore(numberSpan, headerLeft.firstChild);
+                }
+
+                // Add points and required text
+                const pointsRow = card.querySelector('.row:has(.question-points)');
+                if (pointsRow && !pointsRow.querySelector('.student-points-info')) {
+                    const points = card.querySelector('.question-points')?.value || 1;
+                    const required = card.querySelector('.question-required')?.checked;
+
+                    const infoP = document.createElement('p');
+                    infoP.className = 'student-points-info text-muted small mb-3';
+                    infoP.textContent = `${points} point${points > 1 ? 's' : ''} • ${required ? 'Required' : 'Optional'}`;
+                    card.querySelector('.question-header').after(infoP);
+                }
+
+                // Format True/False questions with radio buttons
+                if (type === 'true_false') {
+                    const tfAnswer = card.querySelector('.question-tf-answer');
+                    const lastMb3 = card.querySelector('.mb-3:last-of-type');
+
+                    if (tfAnswer && lastMb3 && !lastMb3.querySelector('.student-tf-radio')) {
+                        const radioContainer = document.createElement('div');
+                        radioContainer.className = 'student-tf-radio';
+                        radioContainer.style.cssText = 'display: flex; gap: 2rem; margin-top: 1rem;';
+                        radioContainer.innerHTML = `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" disabled>
+                                <label class="form-check-label">True</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" disabled>
+                                <label class="form-check-label">False</label>
+                            </div>
+                        `;
+                        lastMb3.appendChild(radioContainer);
+                    }
+                }
+
+                // Format Essay questions with textarea placeholder
+                if (type === 'essay') {
+                    const lastMb3 = card.querySelector('.mb-3:last-of-type');
+                    if (lastMb3 && !lastMb3.querySelector('.student-essay-area')) {
+                        const textareaDiv = document.createElement('div');
+                        textareaDiv.className = 'student-essay-area';
+                        textareaDiv.innerHTML = `
+                            <textarea class="form-control" rows="4" placeholder="Type your answer here..." disabled style="margin-top: 1rem; background: #fff;"></textarea>
+                        `;
+                        lastMb3.appendChild(textareaDiv);
+                    }
+                }
+
+                questionNumber++;
+            });
+        }
+
+        function removeStudentViewFormatting() {
+            // Remove question numbers
+            document.querySelectorAll('.student-question-number').forEach(el => el.remove());
+
+            // Remove points info
+            document.querySelectorAll('.student-points-info').forEach(el => el.remove());
+
+            // Remove true/false radios
+            document.querySelectorAll('.student-tf-radio').forEach(el => el.remove());
+
+            // Remove essay textareas
+            document.querySelectorAll('.student-essay-area').forEach(el => el.remove());
+        }
+
+        // Auto-save functionality
+        let autoSaveTimeout;
+        let hasUnsavedChanges = false;
+
+        function markUnsavedChanges() {
+            hasUnsavedChanges = true;
+            updateAutosaveStatus('unsaved');
+
+            // Clear existing timeout
+            if (autoSaveTimeout) {
+                clearTimeout(autoSaveTimeout);
+            }
+
+            // Auto-save after 2 seconds of inactivity
+            autoSaveTimeout = setTimeout(() => {
+                if (hasUnsavedChanges && currentSurveyId) {
+                    autoSaveQuestions();
+                }
+            }, 2000);
+        }
+
+        function updateAutosaveStatus(status) {
+            const statusEl = document.getElementById('autosaveStatus');
+            const icon = statusEl.querySelector('i');
+            const text = statusEl.querySelector('span');
+
+            statusEl.className = 'autosave-status ' + status;
+
+            switch(status) {
+                case 'saved':
+                    icon.className = 'bx bx-check-circle';
+                    text.textContent = 'All changes saved';
+                    break;
+                case 'saving':
+                    icon.className = 'bx bx-loader-alt';
+                    text.textContent = 'Saving...';
+                    break;
+                case 'error':
+                    icon.className = 'bx bx-error-circle';
+                    text.textContent = 'Error saving';
+                    break;
+                case 'unsaved':
+                    icon.className = 'bx bx-time';
+                    text.textContent = 'Unsaved changes';
+                    statusEl.className = 'autosave-status saving';
+                    break;
+            }
+        }
+
+        function autoSaveQuestions() {
+            if (!currentSurveyId) return;
+
+            updateAutosaveStatus('saving');
+
+            const questionsData = collectQuestionsData();
+
+            // Use the same save_survey endpoint with full data
+            const surveyData = {
+                survey_id: currentSurveyId,
+                title: document.getElementById('surveyTitle').value,
+                description: document.getElementById('surveyDescription').value,
+                time_limit: document.getElementById('surveyTimeLimit').value || null,
+                due_date: document.getElementById('surveyDueDate').value || null,
+                status: document.getElementById('surveyStatus').value,
+                sections: (() => {
+                    const selectedCheckboxes = document.querySelectorAll('input[name="surveySections"]:checked');
+                    return Array.from(selectedCheckboxes).map(cb => cb.value);
+                })(),
+                questions: questionsData
+            };
+
+            fetch('{% url "save_survey" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(surveyData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    hasUnsavedChanges = false;
+                    updateAutosaveStatus('saved');
+                } else {
+                    updateAutosaveStatus('error');
+                }
+            })
+            .catch(error => {
+                console.error('Auto-save error:', error);
+                updateAutosaveStatus('error');
+            });
+        }
+
+        function collectQuestionsData() {
+            const questionCards = document.querySelectorAll('.question-card');
+            const questions = [];
+
+            questionCards.forEach((card, index) => {
+                const type = card.dataset.type;
+
+                // Skip text elements in data collection (they're not questions)
+                if (type === 'heading' || type === 'subheading' || type === 'paragraph') {
+                    return;
+                }
+
+                const questionData = {
+                    type: type,
+                    text: card.querySelector('.question-text').value,
+                    points: parseFloat(card.querySelector('.question-points').value) || 0,
+                    required: card.querySelector('.question-required').checked,
+                    order: index
+                };
+
+                if (type === 'multiple_choice') {
+                    const options = [];
+                    card.querySelectorAll('.options-container .option-item').forEach((opt, idx) => {
+                        const text = opt.querySelector('input[type="text"]').value;
+                        const isCorrect = opt.querySelector('input[type="radio"]').checked;
+                        if (text.trim()) {
+                            options.push({ text, is_correct: isCorrect, order: idx });
+                        }
+                    });
+                    questionData.options = options;
+                } else if (type === 'true_false') {
+                    questionData.correct_answer = card.querySelector('.question-tf-answer').value === 'true';
+                } else if (type === 'enumeration') {
+                    const answers = [];
+                    card.querySelectorAll('.enum-answers-container .option-item').forEach(ans => {
+                        const text = ans.querySelector('input[type="text"]').value;
+                        if (text.trim()) {
+                            answers.push(text);
+                        }
+                    });
+                    questionData.answers = answers;
+                } else if (type === 'essay') {
+                    questionData.max_chars = parseInt(card.querySelector('.question-max-chars').value) || null;
+                }
+
+                // Collect context elements for this question
+                const contextSlot = card.querySelector('.context-slot');
+                if (contextSlot) {
+                    const contextItems = [];
+                    const contextElements = contextSlot.querySelectorAll('.context-item');
+
+                    contextElements.forEach((item, ctxIdx) => {
+                        if (item.classList.contains('code-snippet')) {
+                            const code = item.querySelector('.context-code-textarea').value;
+                            if (code.trim()) {
+                                contextItems.push({
+                                    type: 'code_snippet',
+                                    content: code,
+                                    order: ctxIdx
+                                });
+                            }
+                        } else if (item.classList.contains('image')) {
+                            const imageData = item.querySelector('.context-image-input').dataset.imageData;
+                            if (imageData) {
+                                contextItems.push({
+                                    type: 'image',
+                                    content: imageData,
+                                    order: ctxIdx
+                                });
+                            }
+                        }
+                    });
+
+                    if (contextItems.length > 0) {
+                        questionData.context_items = contextItems;
+                    }
+                }
+
+                questions.push(questionData);
+            });
+
+            return questions;
+        }
+
+        // Add listeners for auto-save on all question inputs
+        document.addEventListener('input', function(e) {
+            if (e.target.closest('.question-card')) {
+                markUnsavedChanges();
+            }
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.closest('.question-card')) {
+                markUnsavedChanges();
+            }
+        });
     </script>
 </body>
 </html>

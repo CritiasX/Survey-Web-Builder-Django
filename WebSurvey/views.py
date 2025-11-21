@@ -489,14 +489,21 @@ def save_survey(request):
 
                 questions_data = data.get('questions') or []
                 for idx, q_data in enumerate(questions_data):
-                    question = Question.objects.create(
-                        survey=survey,
-                        question_type=q_data['type'],
-                        question_text=q_data['text'],
-                        points=q_data.get('points', 1),
-                        order=idx,
-                        required=q_data.get('required', True)
-                    )
+                    # Create question with base fields
+                    question_kwargs = {
+                        'survey': survey,
+                        'question_type': q_data['type'],
+                        'question_text': q_data['text'],
+                        'points': q_data.get('points', 1),
+                        'order': idx,
+                        'required': q_data.get('required', True)
+                    }
+
+                    # Add max_chars for essay questions if provided
+                    if q_data['type'] == 'essay' and q_data.get('max_chars'):
+                        question_kwargs['max_chars'] = q_data['max_chars']
+
+                    question = Question.objects.create(**question_kwargs)
 
                     if q_data['type'] == 'multiple_choice':
                         for opt_idx, option in enumerate(q_data.get('options', [])):
@@ -520,6 +527,18 @@ def save_survey(request):
                                 answer_text=answer,
                                 order=ans_idx
                             )
+                    
+                    # Handle context items - COMMENTED OUT (QuestionContext model not implemented yet)
+                    # context_items = q_data.get('context_items', [])
+                    # for ctx_item in context_items:
+                    #     from WebSurvey.models import QuestionContext
+                    #     QuestionContext.objects.create(
+                    #         question=question,
+                    #         context_type=ctx_item.get('type', 'text'),
+                    #         content=ctx_item.get('content', ''),
+                    #         language=ctx_item.get('language'),
+                    #         order=ctx_item.get('order', 0)
+                    #     )
 
                 survey.calculate_total_points()
 
@@ -574,6 +593,18 @@ def get_survey_data(request, survey_id):
             elif question.question_type == 'enumeration':
                 q_data['answers'] = [
                     ans.answer_text for ans in question.enumeration_answers.all()
+                ]
+            
+            # Include context items
+            if hasattr(question, 'context_items'):
+                q_data['context_items'] = [
+                    {
+                        'type': ctx.context_type,
+                        'content': ctx.content,
+                        'language': ctx.language,
+                        'order': ctx.order
+                    }
+                    for ctx in question.context_items.all()
                 ]
 
             questions_data.append(q_data)

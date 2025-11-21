@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+{% load static %}
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>{% if survey %}Edit{% else %}Create{% endif %} Survey - ResponsePro</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
+    <style>
+        /* Adjust sidebar toggle for builder page */
+        .sidebar-toggle {
+            z-index: 1050 !important;
+        }
+
+        .sidebar-toggle.shifted {
+            left: calc(280px + 280px + 20px) !important; /* Account for both sidebars */
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 0;
+            transition: margin-left 0.3s ease;
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        .main-content.sidebar-collapsed {
+            margin-left: 0;
+        }
+
+        /* Element Palette Sidebar */
+        .element-palette {
+            width: 280px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 1rem;
+            padding-top: 5rem; /* Add space for toggle button */
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .palette-header {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .element-item {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: grab;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .element-item:hover {
+            border-color: #18bc9c;
+            box-shadow: 0 2px 8px rgba(24, 188, 156, 0.2);
+        }
+
+        .element-item:active {
+            cursor: grabbing;
+        }
+
+        .element-item i {
+            font-size: 1.5rem;
+            color: #18bc9c;
+        }
+
+        .element-item .element-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .element-item .element-desc {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-top: 0.25rem;
+        }
+
+        /* Builder Canvas */
+        .builder-canvas {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background: #ecf0f1;
+        }
+
+        .survey-builder-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .survey-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Section Checkbox Group */
+        .section-checkbox-group {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+
+        .section-checkbox-group .form-check {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .section-checkbox-group .form-check:hover {
+            background: #e8f8f5;
+        }
+
+        .section-checkbox-group .form-check:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-checkbox-group .form-check-input:checked ~ .form-check-label {
+            color: #18bc9c;
+            font-weight: 600;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            min-height: 400px;
+            background: white;
+            border: 3px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #18bc9c;
+            background: #e8f8f5;
+        }
+
+        .drop-zone-empty {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #95a5a6;
+        }
+
+        .drop-zone-empty i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            border-left: 4px solid #18bc9c;
+            transition: all 0.2s;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .question-card.dragging {
+            opacity: 0.5;
+        }
+
+        .drag-handle {
+            cursor: move;
+            color: #95a5a6;
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .drag-handle:hover {
+            color: #18bc9c;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .question-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .question-type-badge {
+            background: #18bc9c;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .option-item {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .option-item input[type="text"] {
+            flex: 1;
+        }
+
+        .btn-remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .save-actions {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                flex-direction: column;
+            }
+
+            .element-palette {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle shifted" id="sidebarToggle">
+        <i class="bx bx-menu"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="bx bx-grid-alt" style="color: white;"></i>
+                </div>
+                <span>ResponsePro</span>
+            </a>
+        </div>
+
+        <!-- User Profile -->
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            </div>
+            <div class="user-info">
+                <h6>{{ user.first_name }} {{ user.last_name }}</h6>
+                <p>{{ user.get_role_display }}</p>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Main Menu</div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'dashboard' %}" class="sidebar-nav-link">
+                    <i class="bx bx-home-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section-title">Survey Management</div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-file"></i>
+                    <span>My Surveys</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_create' %}" class="sidebar-nav-link active">
+                    <i class="bx bx-plus-circle"></i>
+                    <span>Create Survey</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'section_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-layer"></i>
+                    <span>Manage Sections</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'overall_analytics' %}" class="sidebar-nav-link">
+                    <i class="bx bx-bar-chart-alt"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'response_management' %}" class="sidebar-nav-link">
+                    <i class="bx bx-group"></i>
+                    <span>Responses</span>
+                </a>
+            </div>
+
+            <!-- Common Menu Items -->
+            <div class="nav-section-title">Account</div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="#" class="sidebar-nav-link">
+                    <i class="bx bx-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="sidebar-logout">
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="bx bx-log-out"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Element Palette Sidebar -->
+        <div class="element-palette">
+            <div class="palette-header">
+                <i class="bx bx-grid-alt"></i> Question Elements
+            </div>
+
+            <div class="element-item" draggable="true" data-type="multiple_choice">
+                <i class="bx bx-list-ul"></i>
+                <div>
+                    <div class="element-label">Multiple Choice</div>
+                    <div class="element-desc">Select one answer</div>
+                </div>
+            </div>
+
+            <div class="element-item" draggable="true" data-type="true_false">
+                <i class="bx bx-check-circle"></i>
+                <div>
+                    <div class="element-label">True/False</div>
+                    <div class="element-desc">Yes or no question</div>
+                </div>
+            </div>
+
+            <div class="element-item" draggable="true" data-type="enumeration">
+                <i class="bx bx-list-ol"></i>
+                <div>
+                    <div class="element-label">Enumeration</div>
+                    <div class="element-desc">List of answers</div>
+                </div>
+            </div>
+
+            <div class="element-item" draggable="true" data-type="essay">
+                <i class="bx bx-edit"></i>
+                <div>
+                    <div class="element-label">Essay</div>
+                    <div class="element-desc">Long text answer</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Builder Canvas -->
+        <div class="builder-canvas">
+            <div class="survey-builder-container">
+                <h2 class="mb-4">{% if survey %}Edit Survey{% else %}Create New Survey{% endif %}</h2>
+
+                <!-- Step 1: Survey Metadata Form -->
+                <div id="metadataForm" {% if survey %}style="display: none;"{% endif %}>
+                    <div class="survey-header">
+                        <h4 class="mb-4">Step 1: Survey Information</h4>
+                        <div class="mb-3">
+                            <label for="surveyTitle" class="form-label">Survey Title *</label>
+                            <input type="text" class="form-control" id="surveyTitle" placeholder="Enter survey title" value="{% if survey %}{{ survey.title }}{% endif %}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="surveyDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="surveyDescription" rows="3" placeholder="Enter survey description">{% if survey %}{{ survey.description }}{% endif %}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="surveyTimeLimit" class="form-label">Time Limit (minutes)</label>
+                                <input type="number" class="form-control" id="surveyTimeLimit" placeholder="Optional" value="{% if survey %}{{ survey.time_limit }}{% endif %}">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="surveyDueDate" class="form-label">Due Date</label>
+                                <input type="datetime-local" class="form-control" id="surveyDueDate" value="{% if survey %}{{ survey.due_date|date:'Y-m-d\TH:i' }}{% endif %}">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="surveyStatus" class="form-label">Status</label>
+                                <select class="form-control" id="surveyStatus">
+                                    <option value="draft" {% if not survey or survey.status == 'draft' %}selected{% endif %}>Draft</option>
+                                    <option value="published" {% if survey and survey.status == 'published' %}selected{% endif %}>Published</option>
+                                    <option value="closed" {% if survey and survey.status == 'closed' %}selected{% endif %}>Closed</option>
+                                </select>
+                                <small class="form-text text-muted">Published: students can answer | Closed: no responses</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Assign to Sections *</label>
+                            <div class="section-checkbox-group">
+                                {% for section in sections %}
+                                <div class="form-check">
+                                    <input class="form-check-input section-checkbox" type="checkbox" name="surveySections" id="section-{{ section.id }}" value="{{ section.id }}" {% if survey and section in survey.sections.all %}checked{% endif %}>
+                                    <label class="form-check-label" for="section-{{ section.id }}">
+                                        {{ section.name }}
+                                        <span class="text-muted small">({{ section.students.count }} student{{ section.students.count|pluralize }})</span>
+                                    </label>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted">No sections available. <a href="{% url 'section_list' %}">Create a section first</a>.</p>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">Select one or more sections to assign this survey</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-secondary" onclick="window.location.href='{% url 'survey_list' %}'">
+                                <i class="bx bx-x"></i> Cancel
+                            </button>
+                            <button class="btn btn-primary" onclick="saveSurveyMetadata()">
+                                <i class="bx bx-arrow-to-right"></i> Continue to Add Questions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Questions Builder (shown after metadata is saved) -->
+                <div id="questionsBuilder" {% if not survey %}style="display: none;"{% endif %}>
+                    <!-- Survey Info Summary -->
+                    <div class="survey-header mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h4 id="surveyTitleDisplay">{% if survey %}{{ survey.title }}{% endif %}</h4>
+                                <p class="text-muted mb-0" id="surveyDescDisplay">{% if survey %}{{ survey.description }}{% endif %}</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="editMetadata()">
+                                <i class="bx bx-edit"></i> Edit Info
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Drop Zone for Questions -->
+                    <div class="drop-zone" id="dropZone">
+                        <div id="questionsContainer">
+                            <!-- Questions will be added here -->
+                        </div>
+                        <div class="drop-zone-empty" id="dropZoneEmpty">
+                            <i class="bx bx-mouse"></i>
+                            <h5>Drag question elements here</h5>
+                            <p>Choose from the elements on the left and drag them onto this canvas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Actions (only show in questions mode) -->
+        <div class="save-actions" id="saveActions" {% if not survey %}style="display: none;"{% endif %}>
+            <button class="btn btn-secondary" onclick="window.location.href='{% url 'survey_list' %}'">
+                <i class="bx bx-x"></i> Done
+            </button>
+            <button class="btn btn-success" onclick="saveQuestions()">
+                <i class="bx bx-save"></i> Save Questions
+            </button>
+        </div>
+    </main>
+
+    <!-- Alert Modal -->
+    <div class="modal fade" id="alertModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertModalTitle">Notice</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="alertModalBody">
+                    <!-- Message will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteQuestionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bx bx-trash me-2"></i>Delete Question
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">Are you sure you want to delete this question?</p>
+                    <p class="text-muted small mb-0">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bx bx-trash me-1"></i>Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed');
+            sidebarToggle.classList.toggle('shifted');
+        });
+
+        let questionCounter = 0;
+        let currentSurveyId = {% if survey %}{{ survey.id }}{% else %}null{% endif %};
+        let draggedElement = null;
+        let draggedQuestionCard = null;
+        let alertModalInstance;
+        let deleteModalInstance;
+        let questionToDelete = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup drag and drop for element palette
+            setupDragAndDrop();
+
+            // Initialize alert modal
+            alertModalInstance = new bootstrap.Modal(document.getElementById('alertModal'));
+
+            // Initialize delete confirmation modal
+            deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteQuestionModal'));
+
+            // Setup delete confirmation button
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                if (questionToDelete) {
+                    const question = document.getElementById(`question-${questionToDelete}`);
+                    question.remove();
+                    updateDropZoneEmpty();
+                    questionToDelete = null;
+                    deleteModalInstance.hide();
+                }
+            });
+
+            // Load existing survey data if editing
+            {% if survey %}
+            loadSurveyData({{ survey.id }});
+            {% endif %}
+
+            updateDropZoneEmpty();
+        });
+
+        function showAlert(message, title = 'Notice') {
+            document.getElementById('alertModalTitle').textContent = title;
+            document.getElementById('alertModalBody').textContent = message;
+            alertModalInstance.show();
+        }
+
+        function setupDragAndDrop() {
+            const elementItems = document.querySelectorAll('.element-item');
+            const dropZone = document.getElementById('dropZone');
+            const questionsContainer = document.getElementById('questionsContainer');
+
+            // Drag start from palette
+            elementItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    draggedElement = e.target.dataset.type;
+                    e.dataTransfer.effectAllowed = 'copy';
+                    e.target.style.opacity = '0.5';
+                });
+
+                item.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '1';
+                });
+            });
+
+            // Drop zone events
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                if (e.target === dropZone) {
+                    dropZone.classList.remove('drag-over');
+                }
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+
+                if (draggedElement) {
+                    addQuestion(draggedElement);
+                    draggedElement = null;
+                } else if (draggedQuestionCard) {
+                    // Reordering - handled by question card drop
+                }
+            });
+        }
+
+        function makeQuestionDraggable(questionCard) {
+            questionCard.draggable = true;
+
+            questionCard.addEventListener('dragstart', (e) => {
+                draggedQuestionCard = questionCard;
+                questionCard.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            questionCard.addEventListener('dragend', (e) => {
+                questionCard.classList.remove('dragging');
+                draggedQuestionCard = null;
+            });
+
+            questionCard.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(document.getElementById('questionsContainer'), e.clientY);
+                const container = document.getElementById('questionsContainer');
+
+                if (afterElement == null) {
+                    container.appendChild(draggedQuestionCard);
+                } else {
+                    container.insertBefore(draggedQuestionCard, afterElement);
+                }
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.question-card:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function updateDropZoneEmpty() {
+            const container = document.getElementById('questionsContainer');
+            const emptyState = document.getElementById('dropZoneEmpty');
+
+            if (container && emptyState) {
+                if (container.children.length === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'none';
+                }
+            }
+        }
+
+        // Save survey metadata first (Step 1)
+        function saveSurveyMetadata() {
+            const title = document.getElementById('surveyTitle').value.trim();
+            const description = document.getElementById('surveyDescription').value.trim();
+            const timeLimit = document.getElementById('surveyTimeLimit').value;
+            const dueDate = document.getElementById('surveyDueDate').value;
+            const status = document.getElementById('surveyStatus').value;
+
+            // Get selected sections from checkboxes
+            const selectedCheckboxes = document.querySelectorAll('input[name="surveySections"]:checked');
+            const sections = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+            // Validate required fields
+            if (!title) {
+                showAlert('Please enter a survey title', 'Error');
+                return;
+            }
+            if (sections.length === 0) {
+                showAlert('Please select at least one section', 'Error');
+                return;
+            }
+
+            // Save metadata as draft
+            const surveyData = {
+                survey_id: currentSurveyId,
+                title: title,
+                description: description,
+                time_limit: timeLimit || null,
+                due_date: dueDate || null,
+                status: status,
+                sections: sections
+            };
+
+            fetch('{% url "save_survey" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(surveyData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentSurveyId = data.survey_id;
+
+                    // Update display
+                    document.getElementById('surveyTitleDisplay').textContent = title;
+                    document.getElementById('surveyDescDisplay').textContent = description;
+
+                    // Switch to questions builder
+                    document.getElementById('metadataForm').style.display = 'none';
+                    document.getElementById('questionsBuilder').style.display = 'block';
+                    document.getElementById('saveActions').style.display = 'flex';
+
+                    showAlert('Survey created! You can now add questions.', 'Success');
+                } else {
+                    showAlert('Error: ' + data.message, 'Error');
+                }
+            })
+            .catch(error => {
+                showAlert('Error saving survey: ' + error, 'Error');
+            });
+        }
+
+        // Edit metadata (go back to step 1)
+        function editMetadata() {
+            document.getElementById('metadataForm').style.display = 'block';
+            document.getElementById('questionsBuilder').style.display = 'none';
+            document.getElementById('saveActions').style.display = 'none';
+        }
+
+        function addQuestion(type) {
+            questionCounter++;
+
+            const container = document.getElementById('questionsContainer');
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            questionCard.id = `question-${questionCounter}`;
+            questionCard.dataset.type = type;
+
+            const typeLabels = {
+                'multiple_choice': 'Multiple Choice',
+                'true_false': 'True/False',
+                'enumeration': 'Enumeration',
+                'essay': 'Essay'
+            };
+
+            let questionHtml = `
+                <div class="question-header">
+                    <div class="question-header-left">
+                        <i class="bx bx-menu drag-handle"></i>
+                        <span class="question-type-badge">${typeLabels[type]}</span>
+                        <h5 class="mb-0">Question ${questionCounter}</h5>
+                    </div>
+                    <div class="question-actions">
+                        <button class="btn btn-sm btn-danger" onclick="removeQuestion(${questionCounter})">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Question Text</label>
+                    <input type="text" class="form-control question-text" placeholder="Enter question text">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Points</label>
+                        <input type="number" class="form-control question-points" value="1" min="0">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input question-required" type="checkbox" checked>
+                            <label class="form-check-label">Required</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (type === 'multiple_choice') {
+                questionHtml += `
+                    <div class="mb-3">
+                        <label class="form-label">Options</label>
+                        <div class="options-container" id="options-${questionCounter}">
+                            <div class="option-item">
+                                <input type="radio" name="correct-${questionCounter}">
+                                <input type="text" class="form-control" placeholder="Option 1">
+                                <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="addOption(${questionCounter})">
+                            <i class="bx bx-plus"></i> Add Option
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'true_false') {
+                questionHtml += `
+                    <div class="mb-3">
+                        <label class="form-label">Correct Answer</label>
+                        <select class="form-control question-tf-answer">
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                `;
+            } else if (type === 'enumeration') {
+                questionHtml += `
+                    <div class="mb-3">
+                        <label class="form-label">Correct Answers (one per line)</label>
+                        <div class="enum-answers-container" id="enum-${questionCounter}">
+                            <div class="option-item">
+                                <input type="text" class="form-control" placeholder="Answer 1">
+                                <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="addEnumAnswer(${questionCounter})">
+                            <i class="bx bx-plus"></i> Add Answer
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'essay') {
+                questionHtml += `
+                    <div class="mb-3">
+                        <label class="form-label">Max Characters (optional)</label>
+                        <input type="number" class="form-control question-max-chars" placeholder="No limit">
+                    </div>
+                `;
+            }
+
+            questionCard.innerHTML = questionHtml;
+            container.appendChild(questionCard);
+
+            // Make the question card draggable for reordering
+            makeQuestionDraggable(questionCard);
+
+            // Update empty state
+            updateDropZoneEmpty();
+        }
+
+        function removeQuestion(id) {
+            questionToDelete = id;
+            deleteModalInstance.show();
+        }
+
+        function addOption(questionId) {
+            const container = document.getElementById(`options-${questionId}`);
+            const optionCount = container.children.length + 1;
+            const optionHtml = `
+                <div class="option-item">
+                    <input type="radio" name="correct-${questionId}">
+                    <input type="text" class="form-control" placeholder="Option ${optionCount}">
+                    <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', optionHtml);
+        }
+
+        function addEnumAnswer(questionId) {
+            const container = document.getElementById(`enum-${questionId}`);
+            const answerCount = container.children.length + 1;
+            const answerHtml = `
+                <div class="option-item">
+                    <input type="text" class="form-control" placeholder="Answer ${answerCount}">
+                    <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', answerHtml);
+        }
+
+        function removeOption(btn) {
+            btn.closest('.option-item').remove();
+        }
+
+        // Save/update questions (Step 2)
+        function saveQuestions() {
+            if (!currentSurveyId) {
+                showAlert('Please save survey information first', 'Error');
+                return;
+            }
+
+            const surveyData = {
+                survey_id: currentSurveyId,
+                title: document.getElementById('surveyTitle').value,
+                description: document.getElementById('surveyDescription').value,
+                time_limit: document.getElementById('surveyTimeLimit').value || null,
+                due_date: document.getElementById('surveyDueDate').value || null,
+                status: document.getElementById('surveyStatus').value,
+                sections: (() => {
+                    const selectedCheckboxes = document.querySelectorAll('input[name="surveySections"]:checked');
+                    return Array.from(selectedCheckboxes).map(cb => cb.value);
+                })(),
+                questions: []
+            };
+
+            // Collect questions
+            const questionCards = document.querySelectorAll('.question-card');
+
+            if (questionCards.length === 0) {
+                showAlert('Please add at least one question', 'Error');
+                return;
+            }
+
+            questionCards.forEach((card, index) => {
+                const type = card.dataset.type;
+                const questionText = card.querySelector('.question-text').value;
+
+                if (!questionText.trim()) {
+                    showAlert('Please fill in all question texts', 'Error');
+                    return;
+                }
+
+                const questionData = {
+                    type: type,
+                    text: questionText,
+                    points: parseInt(card.querySelector('.question-points').value) || 1,
+                    required: card.querySelector('.question-required').checked
+                };
+
+                if (type === 'multiple_choice') {
+                    questionData.options = [];
+                    const optionItems = card.querySelectorAll('.option-item');
+                    let hasCorrect = false;
+
+                    optionItems.forEach(item => {
+                        const text = item.querySelector('input[type="text"]').value;
+                        const isCorrect = item.querySelector('input[type="radio"]').checked;
+                        if (isCorrect) hasCorrect = true;
+                        if (text.trim()) {
+                            questionData.options.push({ text, is_correct: isCorrect });
+                        }
+                    });
+
+                    if (questionData.options.length < 2) {
+                        showAlert('Multiple choice questions need at least 2 options', 'Error');
+                        return;
+                    }
+                    if (!hasCorrect) {
+                        showAlert('Please mark the correct answer for multiple choice questions', 'Error');
+                        return;
+                    }
+                } else if (type === 'true_false') {
+                    questionData.correct_answer = card.querySelector('.question-tf-answer').value === 'true';
+                } else if (type === 'enumeration') {
+                    questionData.answers = [];
+                    const answerItems = card.querySelectorAll('.option-item input[type="text"]');
+                    answerItems.forEach(input => {
+                        if (input.value.trim()) {
+                            questionData.answers.push(input.value.trim());
+                        }
+                    });
+
+                    if (questionData.answers.length === 0) {
+                        showAlert('Enumeration questions need at least one answer', 'Error');
+                        return;
+                    }
+                }
+
+                surveyData.questions.push(questionData);
+            });
+
+            // Send to server
+            fetch('{% url "save_survey" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(surveyData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'Success');
+                    setTimeout(() => {
+                        window.location.href = '{% url "survey_list" %}';
+                    }, 1500);
+                } else {
+                    showAlert('Error: ' + data.message, 'Error');
+                }
+            })
+            .catch(error => {
+                showAlert('Error saving questions: ' + error, 'Error');
+            });
+        }
+
+        function loadSurveyData(surveyId) {
+            fetch(`/surveys/${surveyId}/data/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const survey = data.survey;
+
+                    // Load sections - check the checkboxes
+                    survey.sections.forEach(sectionId => {
+                        const checkbox = document.querySelector(`input[name="surveySections"][value="${sectionId}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+
+                    // Load questions
+                    survey.questions.forEach(q => {
+                        addQuestion(q.type);
+                        const card = document.querySelector('.question-card:last-child');
+                        card.querySelector('.question-text').value = q.text;
+                        card.querySelector('.question-points').value = q.points;
+                        card.querySelector('.question-required').checked = q.required;
+
+                        if (q.type === 'multiple_choice' && q.options) {
+                            const container = card.querySelector('.options-container');
+                            container.innerHTML = '';
+                            q.options.forEach((opt, idx) => {
+                                container.insertAdjacentHTML('beforeend', `
+                                    <div class="option-item">
+                                        <input type="radio" name="correct-${questionCounter}" ${opt.is_correct ? 'checked' : ''}>
+                                        <input type="text" class="form-control" value="${opt.text}">
+                                        <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                                    </div>
+                                `);
+                            });
+                        } else if (q.type === 'true_false') {
+                            card.querySelector('.question-tf-answer').value = q.correct_answer ? 'true' : 'false';
+                        } else if (q.type === 'enumeration' && q.answers) {
+                            const container = card.querySelector('.enum-answers-container');
+                            container.innerHTML = '';
+                            q.answers.forEach(ans => {
+                                container.insertAdjacentHTML('beforeend', `
+                                    <div class="option-item">
+                                        <input type="text" class="form-control" value="${ans}">
+                                        <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                                    </div>
+                                `);
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

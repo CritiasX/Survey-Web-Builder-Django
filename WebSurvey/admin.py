@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     User, Section, Survey, Question, MultipleChoiceOption,
-    TrueFalseAnswer, EnumerationAnswer, StudentResponse, QuestionAnswer
+    TrueFalseAnswer, EnumerationAnswer,
+    StudentResponse, QuestionAnswer
 )
 
 # Register your models here.
