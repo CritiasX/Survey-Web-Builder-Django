@@ -1875,49 +1875,77 @@
                 return;
             }
 
-            questionCards.forEach((card, index) => {
-                const type = card.dataset.type;
-                const questionText = card.querySelector('.question-text').value;
+            let hasError = false;
 
-                if (!questionText.trim()) {
+            questionCards.forEach((card, index) => {
+                if (hasError) return;
+
+                const type = card.dataset.type;
+
+                // Skip text elements (they're not questions)
+                if (type === 'heading' || type === 'subheading' || type === 'paragraph') {
+                    return;
+                }
+
+                const textEl = card.querySelector('.question-text');
+                if (!textEl || !textEl.value.trim()) {
                     showAlert('Please fill in all question texts', 'Error');
+                    hasError = true;
                     return;
                 }
 
                 const questionData = {
                     type: type,
-                    text: questionText,
-                    points: parseInt(card.querySelector('.question-points').value) || 1,
-                    required: card.querySelector('.question-required').checked
+                    text: textEl.value.trim()
                 };
+
+                // Add points and required with null checks
+                const pointsEl = card.querySelector('.question-points');
+                const requiredEl = card.querySelector('.question-required');
+
+                if (pointsEl) {
+                    questionData.points = parseInt(pointsEl.value) || 1;
+                }
+                if (requiredEl) {
+                    questionData.required = requiredEl.checked;
+                }
 
                 if (type === 'multiple_choice') {
                     questionData.options = [];
-                    const optionItems = card.querySelectorAll('.option-item');
+                    const optionItems = card.querySelectorAll('.options-container .option-item');
                     let hasCorrect = false;
 
                     optionItems.forEach(item => {
-                        const text = item.querySelector('input[type="text"]').value;
-                        const isCorrect = item.querySelector('input[type="radio"]').checked;
-                        if (isCorrect) hasCorrect = true;
-                        if (text.trim()) {
-                            questionData.options.push({ text, is_correct: isCorrect });
+                        const textInput = item.querySelector('input[type="text"]');
+                        const radioInput = item.querySelector('input[type="radio"]');
+                        if (textInput && radioInput) {
+                            const text = textInput.value.trim();
+                            const isCorrect = radioInput.checked;
+                            if (isCorrect) hasCorrect = true;
+                            if (text) {
+                                questionData.options.push({ text, is_correct: isCorrect });
+                            }
                         }
                     });
 
                     if (questionData.options.length < 2) {
                         showAlert('Multiple choice questions need at least 2 options', 'Error');
+                        hasError = true;
                         return;
                     }
                     if (!hasCorrect) {
                         showAlert('Please mark the correct answer for multiple choice questions', 'Error');
+                        hasError = true;
                         return;
                     }
                 } else if (type === 'true_false') {
-                    questionData.correct_answer = card.querySelector('.question-tf-answer').value === 'true';
+                    const tfEl = card.querySelector('.question-tf-answer');
+                    if (tfEl) {
+                        questionData.correct_answer = tfEl.value === 'true';
+                    }
                 } else if (type === 'enumeration') {
                     questionData.answers = [];
-                    const answerItems = card.querySelectorAll('.option-item input[type="text"]');
+                    const answerItems = card.querySelectorAll('.enum-answers-container .option-item input[type="text"]');
                     answerItems.forEach(input => {
                         if (input.value.trim()) {
                             questionData.answers.push(input.value.trim());
@@ -1926,12 +1954,54 @@
 
                     if (questionData.answers.length === 0) {
                         showAlert('Enumeration questions need at least one answer', 'Error');
+                        hasError = true;
                         return;
+                    }
+                } else if (type === 'essay') {
+                    const maxCharsEl = card.querySelector('.question-max-chars');
+                    if (maxCharsEl && maxCharsEl.value) {
+                        questionData.max_chars = parseInt(maxCharsEl.value) || null;
+                    }
+                }
+
+                // Collect context items
+                const contextSlot = card.querySelector('.context-slot');
+                if (contextSlot) {
+                    const contextItems = [];
+                    const contextElements = contextSlot.querySelectorAll('.context-item');
+
+                    contextElements.forEach((item, ctxIdx) => {
+                        if (item.classList.contains('code-snippet')) {
+                            const textarea = item.querySelector('.context-code-textarea');
+                            if (textarea && textarea.value.trim()) {
+                                contextItems.push({
+                                    type: 'code_snippet',
+                                    content: textarea.value,
+                                    order: ctxIdx
+                                });
+                            }
+                        } else if (item.classList.contains('image')) {
+                            const fileInput = item.querySelector('.context-image-input');
+                            const imageData = fileInput ? fileInput.dataset.imageData : null;
+                            if (imageData) {
+                                contextItems.push({
+                                    type: 'image',
+                                    content: imageData,
+                                    order: ctxIdx
+                                });
+                            }
+                        }
+                    });
+
+                    if (contextItems.length > 0) {
+                        questionData.context_items = contextItems;
                     }
                 }
 
                 surveyData.questions.push(questionData);
             });
+
+            if (hasError) return;
 
             // Send to server
             fetch('{% url "save_survey" %}', {
@@ -1954,6 +2024,7 @@
                 }
             })
             .catch(error => {
+                console.error('Save error:', error);
                 showAlert('Error saving questions: ' + error, 'Error');
             });
         }
@@ -2298,70 +2369,108 @@
                     return;
                 }
 
+                // Get question text safely
+                const textEl = card.querySelector('.question-text');
+                if (!textEl) {
+                    console.warn('Question card missing text element:', card);
+                    return;
+                }
+
                 const questionData = {
                     type: type,
-                    text: card.querySelector('.question-text').value,
-                    points: parseFloat(card.querySelector('.question-points').value) || 0,
-                    required: card.querySelector('.question-required').checked,
+                    text: textEl.value || '',
                     order: index
                 };
 
-                if (type === 'multiple_choice') {
-                    const options = [];
-                    card.querySelectorAll('.options-container .option-item').forEach((opt, idx) => {
-                        const text = opt.querySelector('input[type="text"]').value;
-                        const isCorrect = opt.querySelector('input[type="radio"]').checked;
-                        if (text.trim()) {
-                            options.push({ text, is_correct: isCorrect, order: idx });
-                        }
-                    });
-                    questionData.options = options;
-                } else if (type === 'true_false') {
-                    questionData.correct_answer = card.querySelector('.question-tf-answer').value === 'true';
-                } else if (type === 'enumeration') {
-                    const answers = [];
-                    card.querySelectorAll('.enum-answers-container .option-item').forEach(ans => {
-                        const text = ans.querySelector('input[type="text"]').value;
-                        if (text.trim()) {
-                            answers.push(text);
-                        }
-                    });
-                    questionData.answers = answers;
-                } else if (type === 'essay') {
-                    questionData.max_chars = parseInt(card.querySelector('.question-max-chars').value) || null;
+                // Add points and required (with null checks)
+                const pointsEl = card.querySelector('.question-points');
+                const requiredEl = card.querySelector('.question-required');
+
+                if (pointsEl) {
+                    questionData.points = parseFloat(pointsEl.value) || 1;
+                }
+                if (requiredEl) {
+                    questionData.required = requiredEl.checked;
                 }
 
-                // Collect context elements for this question
-                const contextSlot = card.querySelector('.context-slot');
-                if (contextSlot) {
-                    const contextItems = [];
-                    const contextElements = contextSlot.querySelectorAll('.context-item');
-
-                    contextElements.forEach((item, ctxIdx) => {
-                        if (item.classList.contains('code-snippet')) {
-                            const code = item.querySelector('.context-code-textarea').value;
-                            if (code.trim()) {
-                                contextItems.push({
-                                    type: 'code_snippet',
-                                    content: code,
-                                    order: ctxIdx
+                // Type-specific data collection
+                try {
+                    if (type === 'multiple_choice') {
+                        const options = [];
+                        const optionItems = card.querySelectorAll('.options-container .option-item');
+                        optionItems.forEach((opt, idx) => {
+                            const textInput = opt.querySelector('input[type="text"]');
+                            const radioInput = opt.querySelector('input[type="radio"]');
+                            if (textInput && textInput.value.trim()) {
+                                options.push({
+                                    text: textInput.value.trim(),
+                                    is_correct: radioInput ? radioInput.checked : false,
+                                    order: idx
                                 });
                             }
-                        } else if (item.classList.contains('image')) {
-                            const imageData = item.querySelector('.context-image-input').dataset.imageData;
-                            if (imageData) {
-                                contextItems.push({
-                                    type: 'image',
-                                    content: imageData,
-                                    order: ctxIdx
-                                });
-                            }
+                        });
+                        questionData.options = options;
+                    } else if (type === 'true_false') {
+                        const tfEl = card.querySelector('.question-tf-answer');
+                        if (tfEl) {
+                            questionData.correct_answer = tfEl.value === 'true';
                         }
-                    });
-
-                    if (contextItems.length > 0) {
-                        questionData.context_items = contextItems;
+                    } else if (type === 'enumeration') {
+                        const answers = [];
+                        const answerItems = card.querySelectorAll('.enum-answers-container .option-item');
+                        answerItems.forEach(ans => {
+                            const textInput = ans.querySelector('input[type="text"]');
+                            if (textInput && textInput.value.trim()) {
+                                answers.push(textInput.value.trim());
+                            }
+                        });
+                        questionData.answers = answers;
+                    } else if (type === 'essay') {
+                        const maxCharsEl = card.querySelector('.question-max-chars');
+                        if (maxCharsEl && maxCharsEl.value) {
+                            questionData.max_chars = parseInt(maxCharsEl.value) || null;
+                        }
                     }
+
+                    // Collect context elements for this question
+                    const contextSlot = card.querySelector('.context-slot');
+                    if (contextSlot) {
+                        const contextItems = [];
+                        const contextElements = contextSlot.querySelectorAll('.context-item');
+
+                        contextElements.forEach((item, ctxIdx) => {
+                            try {
+                                if (item.classList.contains('code-snippet')) {
+                                    const textarea = item.querySelector('.context-code-textarea');
+                                    if (textarea && textarea.value.trim()) {
+                                        contextItems.push({
+                                            type: 'code_snippet',
+                                            content: textarea.value,
+                                            order: ctxIdx
+                                        });
+                                    }
+                                } else if (item.classList.contains('image')) {
+                                    const fileInput = item.querySelector('.context-image-input');
+                                    const imageData = fileInput ? fileInput.dataset.imageData : null;
+                                    if (imageData) {
+                                        contextItems.push({
+                                            type: 'image',
+                                            content: imageData,
+                                            order: ctxIdx
+                                        });
+                                    }
+                                }
+                            } catch (ctxError) {
+                                console.error('Error collecting context item:', ctxError);
+                            }
+                        });
+
+                        if (contextItems.length > 0) {
+                            questionData.context_items = contextItems;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error collecting question data:', error, card);
                 }
 
                 questions.push(questionData);

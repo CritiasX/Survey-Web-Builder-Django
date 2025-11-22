@@ -8,6 +8,10 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
+import json
+import logging
+from collections import Counter
+from django.views.decorators.csrf import csrf_exempt
 from .models import (
     User,
     Section,
@@ -20,11 +24,8 @@ from .models import (
     QuestionAnswer,
 )
 from .services import auto_close_due_surveys, parse_due_date
-from django.shortcuts import render, get_object_or_404
-from .models import StudentResponse, QuestionAnswer
-import json
-from collections import Counter
-from django.views.decorators.csrf import csrf_exempt
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -465,10 +466,13 @@ def save_survey(request):
             raw = request.body.decode('utf-8') if request.body else '{}'
             data = json.loads(raw or '{}')
         except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error in save_survey: {e}")
             return JsonResponse({'success': False, 'message': f'Invalid JSON: {e}'}, status=400)
 
         survey_id = data.get('survey_id') or data.get('id')
         questions_provided = isinstance(data.get('questions'), list)
+
+        logger.info(f"Saving survey - ID: {survey_id}, Questions provided: {questions_provided}, Questions count: {len(data.get('questions', []))}")
 
         with transaction.atomic():
             # Create or update survey
@@ -511,65 +515,81 @@ def save_survey(request):
                     survey.questions.all().delete()
 
                 questions_data = data.get('questions') or []
+                logger.info(f"Processing {len(questions_data)} questions")
 
                 for idx, q_data in enumerate(questions_data):
-                    q_type = q_data.get('type') or q_data.get('question_type')
-                    q_text = q_data.get('text') or q_data.get('question_text') or ''
-                    if not q_type:
-                        # Skip invalid question entries instead of crashing
+                    try:
+                        q_type = q_data.get('type') or q_data.get('question_type')
+                        q_text = q_data.get('text') or q_data.get('question_text') or ''
+                        if not q_type:
+                            logger.warning(f"Question {idx} has no type, skipping")
+                            continue
+
+                        base_kwargs = {
+                            'survey': survey,
+                            'question_type': q_type,
+                            'question_text': q_text,
+                            'points': float(q_data.get('points', 1)) if q_data.get('points') not in (None, '', 'None') else 1.0,
+                            'order': idx,
+                            'required': bool(q_data.get('required', True)),
+                        }
+
+                        # Essay: optional max_chars
+                        if q_type == 'essay':
+                            max_chars = q_data.get('max_chars')
+                            try:
+                                base_kwargs['max_chars'] = int(max_chars) if max_chars not in (None, '', 'None') else None
+                            except (TypeError, ValueError):
+                                base_kwargs['max_chars'] = None
+
+                        question = Question.objects.create(**base_kwargs)
+                        logger.debug(f"Created question {idx}: {q_type} - {q_text[:50] if q_text else 'no text'}")
+
+                        if q_type == 'multiple_choice':
+                            options = q_data.get('options') or []
+                            if not options:
+                                logger.warning(f"Multiple choice question {idx} has no options")
+                            for opt_idx, option in enumerate(options):
+                                MultipleChoiceOption.objects.create(
+                                    question=question,
+                                    option_text=option.get('text', ''),
+                                    is_correct=bool(option.get('is_correct') or option.get('correct')),
+                                    order=opt_idx,
+                                )
+
+                        elif q_type == 'true_false':
+                            TrueFalseAnswer.objects.create(
+                                question=question,
+                                is_true=bool(q_data.get('correct_answer', True)),
+                            )
+
+                        elif q_type == 'enumeration':
+                            answers = q_data.get('answers') or []
+                            if not answers:
+                                logger.warning(f"Enumeration question {idx} has no answers")
+                            for ans_idx, answer in enumerate(answers):
+                                EnumerationAnswer.objects.create(
+                                    question=question,
+                                    answer_text=str(answer),
+                                    order=ans_idx,
+                                )
+
+                        # Context items intentionally ignored for now (QuestionContext model not implemented)
+                        if 'context_items' in q_data:
+                            logger.debug(f"Skipping {len(q_data.get('context_items', []))} context items for question {idx}")
+
+                    except Exception as q_error:
+                        logger.error(f"Error processing question {idx} (type: {q_type if 'q_type' in locals() else 'unknown'}): {q_error}")
+                        import traceback
+                        logger.error(traceback.format_exc())
+                        # Continue processing other questions instead of failing entire save
                         continue
-
-                    base_kwargs = {
-                        'survey': survey,
-                        'question_type': q_type,
-                        'question_text': q_text,
-                        'points': q_data.get('points') or 1,
-                        'order': idx,
-                        'required': bool(q_data.get('required', True)),
-                    }
-
-                    # Essay: optional max_chars
-                    if q_type == 'essay':
-                        max_chars = q_data.get('max_chars')
-                        try:
-                            base_kwargs['max_chars'] = int(max_chars) if max_chars not in (None, '', 'None') else None
-                        except (TypeError, ValueError):
-                            base_kwargs['max_chars'] = None
-
-                    question = Question.objects.create(**base_kwargs)
-
-                    if q_type == 'multiple_choice':
-                        options = q_data.get('options') or []
-                        for opt_idx, option in enumerate(options):
-                            MultipleChoiceOption.objects.create(
-                                question=question,
-                                option_text=option.get('text', ''),
-                                is_correct=bool(option.get('is_correct') or option.get('correct')),
-                                order=opt_idx,
-                            )
-
-                    elif q_type == 'true_false':
-                        TrueFalseAnswer.objects.create(
-                            question=question,
-                            is_true=bool(q_data.get('correct_answer', True)),
-                        )
-
-                    elif q_type == 'enumeration':
-                        answers = q_data.get('answers') or []
-                        for ans_idx, answer in enumerate(answers):
-                            EnumerationAnswer.objects.create(
-                                question=question,
-                                answer_text=str(answer),
-                                order=ans_idx,
-                            )
-
-                    # Context items intentionally ignored for now (QuestionContext model not implemented)
 
                 # Safely recalculate total points
                 try:
                     survey.calculate_total_points()
-                except Exception:
-                    # Don’t break save if this helper blows up
+                except Exception as calc_error:
+                    logger.warning(f"Could not calculate total points: {calc_error}")
                     pass
 
             return JsonResponse({
@@ -579,7 +599,10 @@ def save_survey(request):
             })
 
     except Exception as e:
-        return JsonResponse({'success': False, 'message': f'Error saving survey: {e}'}, status=500)
+        import traceback
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error saving survey: {e}\n{error_traceback}")
+        return JsonResponse({'success': False, 'message': f'Error saving survey: {str(e)}'}, status=500)
 
 
 @login_required
