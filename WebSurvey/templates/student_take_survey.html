@@ -22,8 +22,11 @@
             margin-bottom: 1.5rem;
         }
         .question-card h5 {
-            font-size: 1rem;
-            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0;
+            line-height: 1.4;
         }
 
         /* Context items styling */
@@ -215,11 +218,16 @@
                 {% csrf_token %}
                 {% for question in questions %}
                 <div class="question-card">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0">{{ forloop.counter }}. {{ question.question_text }}</h5>
-                        <span class="badge bg-light text-dark">{{ question.get_question_type_display }}</span>
+                    <!-- Question Header -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-light text-dark">{{ question.get_question_type_display }}</span>
+                            <span class="text-muted small">{{ question.points }} point{% if question.points|default:0 > 1 %}s{% endif %} • {% if question.required %}Required{% else %}Optional{% endif %}</span>
+                        </div>
+                        <div style="font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin-top: 0.75rem; line-height: 1.5;">
+                            <strong>{{ forloop.counter }}.</strong> {{ question.question_text|default:"[No question text]" }}
+                        </div>
                     </div>
-                    <p class="text-muted small mb-3">{{ question.points }} point{% if question.points|default:0 > 1 %}s{% endif %} • {% if question.required %}Required{% else %}Optional{% endif %}</p>
 
                     {% comment %} Display context items (code snippets and images) {% endcomment %}
                     {% if question.context_items.all %}
