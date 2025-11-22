@@ -1962,51 +1962,121 @@
             fetch(`/surveys/${surveyId}/data/`)
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    const survey = data.survey;
+                if (!data.success) {
+                    console.error('Failed to load survey data:', data.message);
+                    showAlert('Failed to load survey data: ' + (data.message || 'Unknown error'), 'Error');
+                    return;
+                }
 
-                    // Load sections - check the checkboxes
+                const survey = data.survey;
+                console.log('Loading survey data:', survey);
+
+                // Load sections - check the checkboxes
+                if (survey.sections && survey.sections.length > 0) {
                     survey.sections.forEach(sectionId => {
                         const checkbox = document.querySelector(`input[name="surveySections"][value="${sectionId}"]`);
                         if (checkbox) checkbox.checked = true;
                     });
+                }
 
-                    // Load questions
+                // Clear existing questions
+                const container = document.getElementById('questionsContainer');
+                container.innerHTML = '';
+                questionCounter = 0;
+
+                // Load questions
+                if (survey.questions && survey.questions.length > 0) {
                     survey.questions.forEach(q => {
                         addQuestion(q.type);
-                        const card = document.querySelector('.question-card:last-child');
-                        card.querySelector('.question-text').value = q.text;
-                        card.querySelector('.question-points').value = q.points;
-                        card.querySelector('.question-required').checked = q.required;
+                        const card = container.lastElementChild;
 
+                        // Set question text
+                        const textEl = card.querySelector('.question-text');
+                        if (textEl) textEl.value = q.text || '';
+
+                        // Set points and required (only for non-text elements)
+                        const pointsEl = card.querySelector('.question-points');
+                        if (pointsEl) pointsEl.value = q.points || 1;
+
+                        const requiredEl = card.querySelector('.question-required');
+                        if (requiredEl) requiredEl.checked = q.required !== false;
+
+                        // Type-specific loading
                         if (q.type === 'multiple_choice' && q.options) {
-                            const container = card.querySelector('.options-container');
-                            container.innerHTML = '';
-                            q.options.forEach((opt, idx) => {
-                                container.insertAdjacentHTML('beforeend', `
-                                    <div class="option-item">
-                                        <input type="radio" name="correct-${questionCounter}" ${opt.is_correct ? 'checked' : ''}>
-                                        <input type="text" class="form-control" value="${opt.text}">
-                                        <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
-                                    </div>
-                                `);
-                            });
+                            const optionsContainer = card.querySelector('.options-container');
+                            if (optionsContainer) {
+                                optionsContainer.innerHTML = '';
+                                q.options.forEach((opt, idx) => {
+                                    optionsContainer.insertAdjacentHTML('beforeend', `
+                                        <div class="option-item">
+                                            <input type="radio" name="correct-${questionCounter}" ${opt.is_correct ? 'checked' : ''}>
+                                            <input type="text" class="form-control" value="${opt.text || ''}">
+                                            <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                                        </div>
+                                    `);
+                                });
+                            }
                         } else if (q.type === 'true_false') {
-                            card.querySelector('.question-tf-answer').value = q.correct_answer ? 'true' : 'false';
+                            const tfEl = card.querySelector('.question-tf-answer');
+                            if (tfEl && q.correct_answer !== undefined) {
+                                tfEl.value = q.correct_answer ? 'true' : 'false';
+                            }
                         } else if (q.type === 'enumeration' && q.answers) {
-                            const container = card.querySelector('.enum-answers-container');
-                            container.innerHTML = '';
-                            q.answers.forEach(ans => {
-                                container.insertAdjacentHTML('beforeend', `
-                                    <div class="option-item">
-                                        <input type="text" class="form-control" value="${ans}">
-                                        <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
-                                    </div>
-                                `);
+                            const enumContainer = card.querySelector('.enum-answers-container');
+                            if (enumContainer) {
+                                enumContainer.innerHTML = '';
+                                q.answers.forEach(ans => {
+                                    enumContainer.insertAdjacentHTML('beforeend', `
+                                        <div class="option-item">
+                                            <input type="text" class="form-control" value="${ans || ''}">
+                                            <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
+                                        </div>
+                                    `);
+                                });
+                            }
+                        } else if (q.type === 'essay') {
+                            const maxCharsEl = card.querySelector('.question-max-chars');
+                            if (maxCharsEl && q.max_chars) {
+                                maxCharsEl.value = q.max_chars;
+                            }
+                        }
+
+                        // Load context items if present
+                        if (q.context_items && q.context_items.length > 0) {
+                            q.context_items.forEach(ctx => {
+                                if (ctx.type === 'code_snippet' || ctx.type === 'image') {
+                                    addContextToQuestion(questionCounter, ctx.type);
+                                    const ctxContainer = card.querySelector('.context-items-container');
+                                    if (ctxContainer) {
+                                        const lastCtx = ctxContainer.lastElementChild;
+                                        if (lastCtx) {
+                                            if (ctx.type === 'code_snippet') {
+                                                const textarea = lastCtx.querySelector('.context-code-textarea');
+                                                if (textarea) textarea.value = ctx.content || '';
+                                            } else if (ctx.type === 'image' && ctx.content) {
+                                                const fileInput = lastCtx.querySelector('input[type="file"]');
+                                                const previewDiv = lastCtx.querySelector('[id$="-preview"]');
+                                                if (fileInput) fileInput.dataset.imageData = ctx.content;
+                                                if (previewDiv) {
+                                                    previewDiv.innerHTML = `<img src="${ctx.content}" class="context-image-preview" style="max-width: 100%; margin-top: 0.5rem; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             });
                         }
                     });
                 }
+
+                updateDropZoneEmpty();
+                hasUnsavedChanges = false;
+                updateAutosaveStatus('saved');
+                console.log('Survey data loaded successfully');
+            })
+            .catch(error => {
+                console.error('Error loading survey data:', error);
+                showAlert('Error loading survey data: ' + error.message, 'Error');
             });
         }
 

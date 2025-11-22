@@ -24,6 +24,7 @@ from django.shortcuts import render, get_object_or_404
 from .models import StudentResponse, QuestionAnswer
 import json
 from collections import Counter
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
@@ -460,9 +461,14 @@ def save_survey(request):
         return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
 
     try:
-        data = json.loads(request.body)
-        survey_id = data.get('survey_id')
-        questions_provided = 'questions' in data
+        try:
+            raw = request.body.decode('utf-8') if request.body else '{}'
+            data = json.loads(raw or '{}')
+        except json.JSONDecodeError as e:
+            return JsonResponse({'success': False, 'message': f'Invalid JSON: {e}'}, status=400)
+
+        survey_id = data.get('survey_id') or data.get('id')
+        questions_provided = isinstance(data.get('questions'), list)
 
         with transaction.atomic():
             # Create or update survey
@@ -471,88 +477,109 @@ def save_survey(request):
             else:
                 survey = Survey(teacher=request.user)
 
-            survey.title = data.get('title', 'Untitled Survey')
-            survey.description = data.get('description', '')
-            survey.status = data.get('status', 'draft')
-            survey.time_limit = data.get('time_limit')
+            survey.title = data.get('title') or 'Untitled Survey'
+            survey.description = data.get('description') or ''
+            survey.status = data.get('status') or 'draft'
+
+            # Time limit may come as string or null
+            time_limit = data.get('time_limit')
+            if time_limit in ("", None, "None"):
+                survey.time_limit = None
+            else:
+                try:
+                    survey.time_limit = int(time_limit)
+                except (TypeError, ValueError):
+                    survey.time_limit = None
+
             survey.due_date = parse_due_date(data.get('due_date'))
             survey.save()
 
-            # Handle sections
-            section_ids = data.get('sections', [])
+            # Handle sections (ids may be strings)
+            section_ids = data.get('sections') or []
             if section_ids:
-                survey.sections.set(Section.objects.filter(id__in=section_ids, teacher=request.user))
+                try:
+                    section_ids_int = [int(sid) for sid in section_ids]
+                except (TypeError, ValueError):
+                    section_ids_int = []
+                survey.sections.set(Section.objects.filter(id__in=section_ids_int, teacher=request.user))
+            else:
+                survey.sections.clear()
 
             if questions_provided:
-                if survey_id:
+                # When editing an existing survey, clear previous questions first
+                if survey.pk:
                     survey.questions.all().delete()
 
                 questions_data = data.get('questions') or []
+
                 for idx, q_data in enumerate(questions_data):
-                    # Create question with base fields
-                    question_kwargs = {
+                    q_type = q_data.get('type') or q_data.get('question_type')
+                    q_text = q_data.get('text') or q_data.get('question_text') or ''
+                    if not q_type:
+                        # Skip invalid question entries instead of crashing
+                        continue
+
+                    base_kwargs = {
                         'survey': survey,
-                        'question_type': q_data['type'],
-                        'question_text': q_data['text'],
-                        'points': q_data.get('points', 1),
+                        'question_type': q_type,
+                        'question_text': q_text,
+                        'points': q_data.get('points') or 1,
                         'order': idx,
-                        'required': q_data.get('required', True)
+                        'required': bool(q_data.get('required', True)),
                     }
 
-                    # Add max_chars for essay questions if provided
-                    if q_data['type'] == 'essay' and q_data.get('max_chars'):
-                        question_kwargs['max_chars'] = q_data['max_chars']
+                    # Essay: optional max_chars
+                    if q_type == 'essay':
+                        max_chars = q_data.get('max_chars')
+                        try:
+                            base_kwargs['max_chars'] = int(max_chars) if max_chars not in (None, '', 'None') else None
+                        except (TypeError, ValueError):
+                            base_kwargs['max_chars'] = None
 
-                    question = Question.objects.create(**question_kwargs)
+                    question = Question.objects.create(**base_kwargs)
 
-                    if q_data['type'] == 'multiple_choice':
-                        for opt_idx, option in enumerate(q_data.get('options', [])):
+                    if q_type == 'multiple_choice':
+                        options = q_data.get('options') or []
+                        for opt_idx, option in enumerate(options):
                             MultipleChoiceOption.objects.create(
                                 question=question,
-                                option_text=option['text'],
-                                is_correct=option.get('is_correct', False),
-                                order=opt_idx
+                                option_text=option.get('text', ''),
+                                is_correct=bool(option.get('is_correct') or option.get('correct')),
+                                order=opt_idx,
                             )
 
-                    elif q_data['type'] == 'true_false':
+                    elif q_type == 'true_false':
                         TrueFalseAnswer.objects.create(
                             question=question,
-                            is_true=q_data.get('correct_answer', True)
+                            is_true=bool(q_data.get('correct_answer', True)),
                         )
 
-                    elif q_data['type'] == 'enumeration':
-                        for ans_idx, answer in enumerate(q_data.get('answers', [])):
+                    elif q_type == 'enumeration':
+                        answers = q_data.get('answers') or []
+                        for ans_idx, answer in enumerate(answers):
                             EnumerationAnswer.objects.create(
                                 question=question,
-                                answer_text=answer,
-                                order=ans_idx
+                                answer_text=str(answer),
+                                order=ans_idx,
                             )
-                    
-                    # Handle context items - COMMENTED OUT (QuestionContext model not implemented yet)
-                    # context_items = q_data.get('context_items', [])
-                    # for ctx_item in context_items:
-                    #     from WebSurvey.models import QuestionContext
-                    #     QuestionContext.objects.create(
-                    #         question=question,
-                    #         context_type=ctx_item.get('type', 'text'),
-                    #         content=ctx_item.get('content', ''),
-                    #         language=ctx_item.get('language'),
-                    #         order=ctx_item.get('order', 0)
-                    #     )
 
-                survey.calculate_total_points()
+                    # Context items intentionally ignored for now (QuestionContext model not implemented)
+
+                # Safely recalculate total points
+                try:
+                    survey.calculate_total_points()
+                except Exception:
+                    # Don’t break save if this helper blows up
+                    pass
 
             return JsonResponse({
                 'success': True,
                 'message': 'Survey saved successfully!',
-                'survey_id': survey.id
+                'survey_id': survey.id,
             })
 
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': f'Error saving survey: {str(e)}'
-        }, status=500)
+        return JsonResponse({'success': False, 'message': f'Error saving survey: {e}'}, status=500)
 
 
 @login_required
