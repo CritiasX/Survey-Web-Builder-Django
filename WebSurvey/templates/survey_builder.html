@@ -348,6 +348,81 @@
             transition: all 0.2s;
         }
 
+        /* Text element cards - minimal styling, blend together */
+        .question-card[data-type="heading"],
+        .question-card[data-type="subheading"],
+        .question-card[data-type="paragraph"] {
+            background: transparent;
+            border: none;
+            border-left: 2px solid transparent;
+            box-shadow: none;
+            padding: 0.5rem 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .question-card[data-type="heading"]:hover,
+        .question-card[data-type="subheading"]:hover,
+        .question-card[data-type="paragraph"]:hover {
+            background: #f8f9fa;
+            border-left-color: #dee2e6;
+        }
+
+        .question-card[data-type="heading"] {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .question-card[data-type="paragraph"] {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Nested text elements inside heading containers */
+        .heading-nested-container {
+            position: relative;
+            margin-top: 1rem;
+            padding-left: 1.5rem; /* Add indent */
+        }
+
+        .heading-nested-container.drag-over-nested {
+            border-style: solid !important;
+        }
+
+        .heading-nested-container .question-card[data-type="subheading"],
+        .heading-nested-container .question-card[data-type="paragraph"] {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border-radius: 4px;
+            border-left: 2px solid transparent;
+        }
+
+        .heading-nested-container .question-card[data-type="subheading"]:hover,
+        .heading-nested-container .question-card[data-type="paragraph"]:hover {
+            background: rgba(0,0,0,0.02);
+            border-left-color: #dee2e6;
+        }
+
+        .heading-nested-container .question-card[data-type="paragraph"] {
+            padding-left: 2rem; /* Extra indent for paragraphs */
+        }
+
+        /* Hide hint when container has items */
+        .heading-nested-container:has(.question-card) .nested-drop-hint {
+            display: none !important;
+        }
+
+        /* Adjust nested container when it has content */
+        .heading-nested-container:has(.question-card) {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0 0.5rem 1.5rem;
+        }
+
         .question-card:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
@@ -680,7 +755,7 @@
             border-color: #18bc9c;
         }
 
-        /* Text elements - clean and minimal */
+        /* Text elements - clean hierarchy with indentation, no badges */
         .student-view-mode .question-card[data-type="heading"],
         .student-view-mode .question-card[data-type="subheading"],
         .student-view-mode .question-card[data-type="paragraph"] {
@@ -689,6 +764,30 @@
             background: transparent;
             padding: 0.5rem 0;
             border-left: none;
+            margin-bottom: 0.75rem;
+        }
+
+        .student-view-mode .question-card[data-type="heading"] {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding: 0;
+        }
+
+        .student-view-mode .question-card[data-type="subheading"] {
+            margin-bottom: 0.75rem;
+            padding-left: 0;
+        }
+
+        .student-view-mode .question-card[data-type="paragraph"] {
+            margin-bottom: 0.75rem;
+            padding-left: 0;
+        }
+
+        /* Hide badges for text elements in student view */
+        .student-view-mode .question-card[data-type="heading"] .question-type-badge,
+        .student-view-mode .question-card[data-type="subheading"] .question-type-badge,
+        .student-view-mode .question-card[data-type="paragraph"] .question-type-badge {
+            display: none !important;
         }
 
         .student-view-mode .question-card[data-type="heading"] .question-text,
@@ -702,22 +801,48 @@
             resize: none;
             overflow: hidden;
             color: #2c3e50;
+            line-height: 1.5;
         }
 
         .student-view-mode .question-card[data-type="heading"] .question-text {
-            font-size: 2rem;
+            font-size: 2.25rem;
             font-weight: 700;
+            margin-left: 0;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
         }
 
         .student-view-mode .question-card[data-type="subheading"] .question-text {
             font-size: 1.5rem;
             font-weight: 600;
+            margin-left: 0;
+            line-height: 1.3;
         }
 
         .student-view-mode .question-card[data-type="paragraph"] .question-text {
             font-size: 1rem;
             font-weight: 400;
             line-height: 1.6;
+            margin-left: 0;
+        }
+
+        /* Nested elements in student view */
+        .student-view-mode .heading-nested-container {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin-top: 0.5rem;
+            margin-left: 0;
+        }
+
+        .student-view-mode .heading-nested-container .question-card[data-type="subheading"] {
+            margin-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-view-mode .heading-nested-container .question-card[data-type="paragraph"] {
+            margin-left: 3rem;
+            margin-bottom: 0.5rem;
         }
 
         /* Context elements - clean and readable */
@@ -1260,10 +1385,12 @@
                     draggedElement = e.target.dataset.type;
                     e.dataTransfer.effectAllowed = 'copy';
                     e.target.style.opacity = '0.5';
+                    console.log('Dragging from palette:', draggedElement);
                 });
 
                 item.addEventListener('dragend', (e) => {
                     e.target.style.opacity = '1';
+                    draggedElement = null;
                 });
             });
 
@@ -1272,6 +1399,16 @@
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
                 dropZone.classList.add('drag-over');
+
+                // Check if we're over a nested container
+                const nestedContainer = e.target.closest('.heading-nested-container');
+                if (nestedContainer && draggedElement) {
+                    const dragType = draggedElement;
+                    if (dragType === 'subheading' || dragType === 'paragraph') {
+                        // We're over a valid nested container, let it handle
+                        return;
+                    }
+                }
 
                 // If dragging over a question card, track position
                 const target = e.target.closest('.question-card');
@@ -1293,6 +1430,25 @@
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.classList.remove('drag-over');
+
+                // Check if we're dropping into a nested container
+                const nestedContainer = e.target.closest('.heading-nested-container');
+                if (nestedContainer && draggedElement) {
+                    const dragType = draggedElement;
+                    if (dragType === 'subheading' || dragType === 'paragraph') {
+                        console.log('Dropping into nested container from palette');
+                        // Create and add directly to nested container
+                        addQuestion(draggedElement);
+                        const newCard = document.getElementById(`question-${questionCounter}`);
+                        if (newCard) {
+                            const hint = nestedContainer.querySelector('.nested-drop-hint');
+                            if (hint) hint.style.display = 'none';
+                            nestedContainer.appendChild(newCard);
+                        }
+                        draggedElement = null;
+                        return;
+                    }
+                }
 
                 if (draggedElement) {
                     // Create the new question
@@ -1321,23 +1477,63 @@
 
         function makeQuestionDraggable(questionCard) {
             const dragHandle = questionCard.querySelector('.drag-handle');
+            const cardType = questionCard.dataset.type;
 
-            // Make entire card draggable, not just handle
-            questionCard.draggable = true;
-            questionCard.style.cursor = 'move';
+            console.log('Making draggable:', cardType);
 
-            // Prevent dragging when interacting with inputs
-            const inputs = questionCard.querySelectorAll('input, textarea, select, button');
-            inputs.forEach(input => {
-                input.addEventListener('mousedown', (e) => {
-                    questionCard.draggable = false;
+            // For text elements, only drag by handle. For others, entire card is draggable
+            if (cardType === 'heading' || cardType === 'subheading' || cardType === 'paragraph') {
+                // Text elements: drag by clicking on handle ONLY
+                questionCard.draggable = false; // Start false
+
+                if (dragHandle) {
+                    dragHandle.style.cursor = 'grab';
+
+                    // Enable dragging when clicking the handle
+                    dragHandle.addEventListener('mousedown', (e) => {
+                        console.log('Handle mousedown - enabling drag');
+                        questionCard.draggable = true;
+                        e.stopPropagation();
+                    });
+
+                    // Keep it draggable for a moment to allow drag to start
+                    dragHandle.addEventListener('mouseup', (e) => {
+                        setTimeout(() => {
+                            questionCard.draggable = false;
+                        }, 100);
+                    });
+                }
+
+                // Also enable dragging from the question header area (not the textarea)
+                const header = questionCard.querySelector('.question-header');
+                if (header) {
+                    header.style.cursor = 'grab';
+                    header.addEventListener('mousedown', (e) => {
+                        // Only if not clicking a button
+                        if (e.target.closest('button')) return;
+                        console.log('Header mousedown - enabling drag');
+                        questionCard.draggable = true;
+                    });
+                }
+            } else {
+                // Regular questions: entire card draggable
+                questionCard.draggable = true;
+                questionCard.style.cursor = 'move';
+
+                // Prevent dragging when interacting with inputs
+                const inputs = questionCard.querySelectorAll('input, textarea, select, button');
+                inputs.forEach(input => {
+                    input.addEventListener('mousedown', (e) => {
+                        questionCard.draggable = false;
+                    });
+                    input.addEventListener('mouseup', (e) => {
+                        questionCard.draggable = true;
+                    });
                 });
-                input.addEventListener('mouseup', (e) => {
-                    questionCard.draggable = true;
-                });
-            });
+            }
 
             questionCard.addEventListener('dragstart', (e) => {
+                console.log('Drag started for:', cardType, 'draggable:', questionCard.draggable);
                 draggedQuestionCard = questionCard;
                 questionCard.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
@@ -1349,13 +1545,24 @@
             });
 
             questionCard.addEventListener('dragend', (e) => {
+                console.log('Drag ended');
                 questionCard.classList.remove('dragging');
                 questionCard.style.opacity = '1';
                 draggedQuestionCard = null;
 
+                // Reset draggable for text elements
+                if (cardType === 'heading' || cardType === 'subheading' || cardType === 'paragraph') {
+                    questionCard.draggable = false;
+                }
+
                 // Remove all drag indicators
                 document.querySelectorAll('.question-card').forEach(card => {
                     card.classList.remove('drag-over-top', 'drag-over-bottom');
+                });
+                document.querySelectorAll('.heading-nested-container').forEach(container => {
+                    container.classList.remove('drag-over-nested');
+                    container.style.borderColor = '#dee2e6';
+                    container.style.background = 'transparent';
                 });
 
                 markUnsavedChanges();
@@ -1364,6 +1571,18 @@
             questionCard.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 if (draggedQuestionCard === questionCard) return;
+
+                // Check if we're over a nested container
+                const target = e.target;
+                const nestedContainer = target.closest('.heading-nested-container');
+
+                // If we're over a nested container, let it handle the event
+                if (nestedContainer && draggedQuestionCard) {
+                    const draggedType = draggedQuestionCard.dataset.type;
+                    if (draggedType === 'subheading' || draggedType === 'paragraph') {
+                        return; // Let the nested container handle this
+                    }
+                }
 
                 const container = document.getElementById('questionsContainer');
                 const bounding = questionCard.getBoundingClientRect();
@@ -1390,6 +1609,133 @@
                     questionCard.classList.remove('drag-over-top', 'drag-over-bottom');
                 }
             });
+
+            // Setup nested container for headings
+            if (cardType === 'heading') {
+                const nestedContainer = questionCard.querySelector('.heading-nested-container');
+                if (nestedContainer) {
+                    setupNestedContainer(nestedContainer);
+                }
+            }
+        }
+
+        function setupNestedContainer(nestedContainer) {
+            console.log('Setting up nested container:', nestedContainer);
+
+            nestedContainer.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Check if dragging from palette or existing card
+                const dragType = draggedElement || draggedQuestionCard?.dataset.type;
+                console.log('Drag enter nested container, dragged type:', dragType);
+
+                if (!dragType) return;
+
+                // Only allow subheadings and paragraphs to be nested
+                if (dragType !== 'subheading' && dragType !== 'paragraph') {
+                    console.log('Not a nestable type:', dragType);
+                    return;
+                }
+
+                console.log('Highlighting nested container');
+                nestedContainer.classList.add('drag-over-nested');
+                nestedContainer.style.borderColor = '#18bc9c';
+                nestedContainer.style.borderStyle = 'solid';
+                nestedContainer.style.borderWidth = '3px';
+                nestedContainer.style.background = 'rgba(24, 188, 156, 0.15)';
+            });
+
+            nestedContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const dragType = draggedElement || draggedQuestionCard?.dataset.type;
+                if (!dragType) return;
+
+                // Only allow subheadings and paragraphs to be nested
+                if (dragType !== 'subheading' && dragType !== 'paragraph') return;
+
+                // Keep the visual feedback
+                nestedContainer.classList.add('drag-over-nested');
+                nestedContainer.style.borderColor = '#18bc9c';
+                nestedContainer.style.borderStyle = 'solid';
+                nestedContainer.style.borderWidth = '3px';
+                nestedContainer.style.background = 'rgba(24, 188, 156, 0.15)';
+            });
+
+            nestedContainer.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Only remove highlight if we're actually leaving the container
+                if (!nestedContainer.contains(e.relatedTarget)) {
+                    console.log('Actually leaving, removing highlight');
+                    nestedContainer.classList.remove('drag-over-nested');
+                    nestedContainer.style.borderColor = '#dee2e6';
+                    nestedContainer.style.borderStyle = 'dashed';
+                    nestedContainer.style.borderWidth = '2px';
+                    nestedContainer.style.background = '#f8f9fa';
+                }
+            });
+
+            nestedContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('Drop event on nested container!');
+                console.log('draggedElement:', draggedElement);
+                console.log('draggedQuestionCard:', draggedQuestionCard?.dataset.type);
+
+                // Handle drops from palette
+                if (draggedElement) {
+                    const dragType = draggedElement;
+                    console.log('Dropping from palette:', dragType);
+
+                    if (dragType === 'subheading' || dragType === 'paragraph') {
+                        console.log('Creating and nesting from palette');
+                        // Already handled in main drop zone, just reset visual
+                    }
+                }
+                // Handle drops from existing cards
+                else if (draggedQuestionCard) {
+                    const dragType = draggedQuestionCard.dataset.type;
+                    console.log('Dropping existing card:', dragType);
+
+                    // Only allow subheadings and paragraphs to be nested
+                    if (dragType !== 'subheading' && dragType !== 'paragraph') {
+                        console.log('Cannot nest this type');
+                        resetNestedContainerVisuals(nestedContainer);
+                        return;
+                    }
+
+                    console.log('Nesting the element!');
+
+                    // Hide the hint if it exists
+                    const hint = nestedContainer.querySelector('.nested-drop-hint');
+                    if (hint) {
+                        hint.style.display = 'none';
+                        console.log('Hid the hint');
+                    }
+
+                    // Append the dragged element to the nested container
+                    nestedContainer.appendChild(draggedQuestionCard);
+                    console.log('Appended to nested container');
+
+                    markUnsavedChanges();
+                }
+
+                // Reset visual feedback
+                resetNestedContainerVisuals(nestedContainer);
+            });
+        }
+
+        function resetNestedContainerVisuals(container) {
+            container.classList.remove('drag-over-nested');
+            container.style.borderColor = '#dee2e6';
+            container.style.borderStyle = 'dashed';
+            container.style.borderWidth = '2px';
+            container.style.background = '#f8f9fa';
         }
 
         function getDragAfterElement(container, y) {
@@ -1522,29 +1868,76 @@
                 };
 
                 const fontSizes = {
-                    'heading': '2rem',
-                    'subheading': '1.5rem',
+                    'heading': '2.5rem',
+                    'subheading': '1.75rem',
                     'paragraph': '1rem'
                 };
 
-                questionHtml = `
-                    <div class="question-header">
-                        <div class="question-header-left">
-                            <i class="bx bx-menu drag-handle"></i>
-                            <span class="question-type-badge" style="background: #6c757d;">${typeLabels[type]}</span>
+                const fontWeights = {
+                    'heading': '700',
+                    'subheading': '600',
+                    'paragraph': '400'
+                };
+
+                const indentations = {
+                    'heading': '0rem',
+                    'subheading': '1.5rem',
+                    'paragraph': '3rem'
+                };
+
+                const badgeColors = {
+                    'heading': '#343a40',
+                    'subheading': '#6c757d',
+                    'paragraph': '#adb5bd'
+                };
+
+                if (type === 'heading') {
+                    // Heading with nested container for subheadings and paragraphs
+                    questionHtml = `
+                        <div class="question-header" style="padding: 0.25rem 0; margin-bottom: 0;">
+                            <div class="question-header-left" style="gap: 0.5rem;">
+                                <i class="bx bx-menu drag-handle" style="font-size: 1.2rem; color: #6c757d; cursor: grab; padding: 0.5rem;"></i>
+                            </div>
+                            <div class="question-actions">
+                                <button class="btn btn-sm btn-danger" onclick="removeQuestion(${questionCounter})" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="question-actions">
-                            <button class="btn btn-sm btn-danger" onclick="removeQuestion(${questionCounter})">
-                                <i class="bx bx-trash"></i>
-                            </button>
+                        <div style="padding-left: 0;">
+                            <textarea class="form-control question-text" rows="1"
+                                placeholder="${placeholders[type]}"
+                                style="font-size: ${fontSizes[type]}; font-weight: ${fontWeights[type]}; line-height: 1.4; border: none; box-shadow: none; resize: none; overflow: hidden; padding: 0.25rem 0; background: transparent;"
+                                oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <textarea class="form-control question-text" rows="${type === 'paragraph' ? 4 : 2}"
-                            placeholder="${placeholders[type]}"
-                            style="font-size: ${fontSizes[type]}; font-weight: ${type === 'heading' ? 'bold' : type === 'subheading' ? '600' : 'normal'};"></textarea>
-                    </div>
-                `;
+                        <div class="heading-nested-container" data-heading-id="${questionCounter}" style="margin-top: 1rem; min-height: 80px; padding: 1rem; border: 2px dashed #dee2e6; border-radius: 8px; transition: all 0.3s; background: #f8f9fa;">
+                            <div class="nested-drop-hint" style="color: #adb5bd; font-size: 0.9rem; font-style: italic; text-align: center; padding: 1.5rem;">
+                                <i class="bx bx-down-arrow-alt" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem;"></i>
+                                Drag subheading or paragraph here to nest them
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Subheading and paragraph - can be nested
+                    questionHtml = `
+                        <div class="question-header" style="padding: 0.25rem 0; margin-bottom: 0;">
+                            <div class="question-header-left" style="gap: 0.5rem;">
+                                <i class="bx bx-menu drag-handle" style="font-size: 1.2rem; color: #6c757d; cursor: grab; padding: 0.5rem;"></i>
+                            </div>
+                            <div class="question-actions">
+                                <button class="btn btn-sm btn-danger" onclick="removeQuestion(${questionCounter})" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div style="padding-left: ${type === 'subheading' ? '0' : '1.5rem'};">
+                            <textarea class="form-control question-text" rows="${type === 'paragraph' ? 4 : 2}"
+                                placeholder="${placeholders[type]}"
+                                style="font-size: ${fontSizes[type]}; font-weight: ${fontWeights[type]}; line-height: 1.4; border: none; box-shadow: none; resize: none; overflow: hidden; padding: 0.25rem 0; background: transparent;"
+                                oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea>
+                        </div>
+                    `;
+                }
             } else {
                 // Regular question elements
                 questionHtml = `
@@ -2208,6 +2601,21 @@
                     header.after(displayDiv);
                 }
 
+                // Move context slot to appear before options/choices
+                const contextSlot = card.querySelector('.context-slot');
+                if (contextSlot) {
+                    // Find where to insert - before options, tf answer, enum container, or essay area
+                    let insertBefore = card.querySelector('.options-container')
+                        || card.querySelector('.question-tf-answer')?.closest('.mb-3')
+                        || card.querySelector('.enum-answers-container')?.closest('.mb-3')
+                        || card.querySelector('.question-max-chars')?.closest('.mb-3');
+
+                    if (insertBefore && insertBefore.parentNode) {
+                        // Move context slot before the answer section
+                        insertBefore.parentNode.insertBefore(contextSlot, insertBefore);
+                    }
+                }
+
                 // Format True/False questions with radio buttons
                 if (type === 'true_false') {
                     const tfAnswer = card.querySelector('.question-tf-answer');
@@ -2360,16 +2768,15 @@
         }
 
         function collectQuestionsData() {
-            const questionCards = document.querySelectorAll('.question-card');
+            const questionsContainer = document.getElementById('questionsContainer');
             const questions = [];
+            let orderCounter = 0;
 
-            questionCards.forEach((card, index) => {
+            // Only get top-level question cards (not nested ones)
+            const topLevelCards = Array.from(questionsContainer.children).filter(child => child.classList.contains('question-card'));
+
+            topLevelCards.forEach((card) => {
                 const type = card.dataset.type;
-
-                // Skip text elements in data collection (they're not questions)
-                if (type === 'heading' || type === 'subheading' || type === 'paragraph') {
-                    return;
-                }
 
                 // Get question text safely
                 const textEl = card.querySelector('.question-text');
@@ -2381,10 +2788,39 @@
                 const questionData = {
                     type: type,
                     text: textEl.value || '',
-                    order: index
+                    order: orderCounter++
                 };
 
-                // Add points and required (with null checks)
+                // For text elements (heading, subheading, paragraph), collect text and check for nested items
+                if (type === 'heading' || type === 'subheading' || type === 'paragraph') {
+                    // If it's a heading, check for nested elements
+                    if (type === 'heading') {
+                        const nestedContainer = card.querySelector('.heading-nested-container');
+                        if (nestedContainer) {
+                            const nestedCards = nestedContainer.querySelectorAll('.question-card');
+                            if (nestedCards.length > 0) {
+                                const nestedItems = [];
+                                nestedCards.forEach((nestedCard, nestedIndex) => {
+                                    const nestedText = nestedCard.querySelector('.question-text');
+                                    if (nestedText) {
+                                        nestedItems.push({
+                                            type: nestedCard.dataset.type,
+                                            text: nestedText.value || '',
+                                            order: nestedIndex
+                                        });
+                                    }
+                                });
+                                if (nestedItems.length > 0) {
+                                    questionData.nested_items = nestedItems;
+                                }
+                            }
+                        }
+                    }
+                    questions.push(questionData);
+                    return;
+                }
+
+                // Add points and required (with null checks) - only for actual questions
                 const pointsEl = card.querySelector('.question-points');
                 const requiredEl = card.querySelector('.question-required');
 

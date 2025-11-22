@@ -526,14 +526,23 @@ def save_survey(request):
                             logger.warning(f"Question {idx} has no type, skipping")
                             continue
 
+                        # Text elements (heading, subheading, paragraph) don't need points/required
+                        is_text_element = q_type in ['heading', 'subheading', 'paragraph']
+
                         base_kwargs = {
                             'survey': survey,
                             'question_type': q_type,
                             'question_text': q_text,
-                            'points': float(q_data.get('points', 1)) if q_data.get('points') not in (None, '', 'None') else 1.0,
                             'order': idx,
-                            'required': bool(q_data.get('required', True)),
                         }
+
+                        # Only add points and required for actual questions, not text elements
+                        if not is_text_element:
+                            base_kwargs['points'] = float(q_data.get('points', 1)) if q_data.get('points') not in (None, '', 'None') else 1.0
+                            base_kwargs['required'] = bool(q_data.get('required', True))
+                        else:
+                            base_kwargs['points'] = 0  # Text elements have no points
+                            base_kwargs['required'] = False  # Text elements are not required
 
                         # Essay: optional max_chars
                         if q_type == 'essay':
@@ -546,34 +555,58 @@ def save_survey(request):
                         question = Question.objects.create(**base_kwargs)
                         logger.debug(f"Created question {idx}: {q_type} - {q_text[:50] if q_text else 'no text'}")
 
-                        if q_type == 'multiple_choice':
-                            options = q_data.get('options') or []
-                            if not options:
-                                logger.warning(f"Multiple choice question {idx} has no options")
-                            for opt_idx, option in enumerate(options):
-                                MultipleChoiceOption.objects.create(
+                        # Handle nested items for headings
+                        if q_type == 'heading':
+                            nested_items = q_data.get('nested_items', [])
+                            if nested_items:
+                                logger.debug(f"Processing {len(nested_items)} nested items for heading")
+                                for nested_idx, nested_item in enumerate(nested_items):
+                                    try:
+                                        nested_type = nested_item.get('type')
+                                        nested_text = nested_item.get('text', '')
+                                        if nested_type in ['subheading', 'paragraph']:
+                                            # Create nested text element as a separate question with a special marker
+                                            Question.objects.create(
+                                                survey=survey,
+                                                question_type=nested_type,
+                                                question_text=nested_text,
+                                                points=0,
+                                                order=idx + 0.001 * (nested_idx + 1),  # Fractional order to maintain nesting
+                                                required=False,
+                                            )
+                                    except Exception as nested_error:
+                                        logger.error(f"Error saving nested item: {nested_error}")
+
+                        # Only process question-specific data for actual questions
+                        if not is_text_element:
+                            if q_type == 'multiple_choice':
+                                options = q_data.get('options') or []
+                                if not options:
+                                    logger.warning(f"Multiple choice question {idx} has no options")
+                                for opt_idx, option in enumerate(options):
+                                    MultipleChoiceOption.objects.create(
+                                        question=question,
+                                        option_text=option.get('text', ''),
+                                        is_correct=bool(option.get('is_correct') or option.get('correct')),
+                                        order=opt_idx,
+                                    )
+
+                            elif q_type == 'true_false':
+                                TrueFalseAnswer.objects.create(
                                     question=question,
-                                    option_text=option.get('text', ''),
-                                    is_correct=bool(option.get('is_correct') or option.get('correct')),
-                                    order=opt_idx,
+                                    is_true=bool(q_data.get('correct_answer', True)),
                                 )
 
-                        elif q_type == 'true_false':
-                            TrueFalseAnswer.objects.create(
-                                question=question,
-                                is_true=bool(q_data.get('correct_answer', True)),
-                            )
-
-                        elif q_type == 'enumeration':
-                            answers = q_data.get('answers') or []
-                            if not answers:
-                                logger.warning(f"Enumeration question {idx} has no answers")
-                            for ans_idx, answer in enumerate(answers):
-                                EnumerationAnswer.objects.create(
-                                    question=question,
-                                    answer_text=str(answer),
-                                    order=ans_idx,
-                                )
+                            elif q_type == 'enumeration':
+                                answers = q_data.get('answers') or []
+                                if not answers:
+                                    logger.warning(f"Enumeration question {idx} has no answers")
+                                for ans_idx, answer in enumerate(answers):
+                                    EnumerationAnswer.objects.create(
+                                        question=question,
+                                        answer_text=str(answer),
+                                        order=ans_idx,
+                                    )
 
                         # Save context items (code snippets and images)
                         context_items = q_data.get('context_items', [])

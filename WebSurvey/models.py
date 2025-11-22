@@ -63,6 +63,9 @@ class Question(models.Model):
         ('true_false', 'True or False'),
         ('essay', 'Essay'),
         ('enumeration', 'Enumeration'),
+        ('heading', 'Heading'),
+        ('subheading', 'Subheading'),
+        ('paragraph', 'Paragraph'),
     ]
 
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='questions')
