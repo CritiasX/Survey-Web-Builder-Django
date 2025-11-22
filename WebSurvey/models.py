@@ -81,6 +81,27 @@ class Question(models.Model):
         return f"{self.survey.title} - Q{self.order}: {self.question_text[:50]}"
 
 
+class QuestionContext(models.Model):
+    """Context items (code snippets, images) for questions"""
+    CONTEXT_TYPES = [
+        ('code_snippet', 'Code Snippet'),
+        ('image', 'Image'),
+    ]
+
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='context_items')
+    context_type = models.CharField(max_length=20, choices=CONTEXT_TYPES)
+    content = models.TextField()  # Code text or base64 image data
+    language = models.CharField(max_length=50, blank=True, null=True)  # For code snippets
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.question} - {self.context_type} #{self.order}"
+
+
 class MultipleChoiceOption(models.Model):
     """Options for multiple choice questions"""
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options')

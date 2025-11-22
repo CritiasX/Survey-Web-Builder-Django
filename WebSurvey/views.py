@@ -20,6 +20,7 @@ from .models import (
     MultipleChoiceOption,
     TrueFalseAnswer,
     EnumerationAnswer,
+    QuestionContext,
     StudentResponse,
     QuestionAnswer,
 )
@@ -574,9 +575,21 @@ def save_survey(request):
                                     order=ans_idx,
                                 )
 
-                        # Context items intentionally ignored for now (QuestionContext model not implemented)
-                        if 'context_items' in q_data:
-                            logger.debug(f"Skipping {len(q_data.get('context_items', []))} context items for question {idx}")
+                        # Save context items (code snippets and images)
+                        context_items = q_data.get('context_items', [])
+                        if context_items:
+                            logger.debug(f"Saving {len(context_items)} context items for question {idx}")
+                            for ctx_item in context_items:
+                                try:
+                                    QuestionContext.objects.create(
+                                        question=question,
+                                        context_type=ctx_item.get('type', 'code_snippet'),
+                                        content=ctx_item.get('content', ''),
+                                        language=ctx_item.get('language', ''),
+                                        order=ctx_item.get('order', 0)
+                                    )
+                                except Exception as ctx_error:
+                                    logger.error(f"Error saving context item: {ctx_error}")
 
                     except Exception as q_error:
                         logger.error(f"Error processing question {idx} (type: {q_type if 'q_type' in locals() else 'unknown'}): {q_error}")
@@ -716,7 +729,7 @@ def take_survey(request, survey_id):
     auto_close_due_surveys()
     survey = get_object_or_404(
         Survey.objects.select_related('teacher')
-        .prefetch_related('questions__options', 'questions__enumeration_answers'),
+        .prefetch_related('questions__options', 'questions__enumeration_answers', 'questions__context_items'),
         id=survey_id,
         status__in=['published', 'closed']
     )

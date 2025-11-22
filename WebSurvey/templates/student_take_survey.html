@@ -25,6 +25,54 @@
             font-size: 1rem;
             margin-bottom: 1rem;
         }
+
+        /* Context items styling */
+        .context-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #6366f1;
+        }
+
+        .context-item {
+            margin-bottom: 1rem;
+        }
+
+        .context-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .context-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6366f1;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .context-code {
+            background: #1e293b;
+            color: #f8f9fa;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .context-image {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 
@@ -172,6 +220,29 @@
                         <span class="badge bg-light text-dark">{{ question.get_question_type_display }}</span>
                     </div>
                     <p class="text-muted small mb-3">{{ question.points }} point{% if question.points|default:0 > 1 %}s{% endif %} • {% if question.required %}Required{% else %}Optional{% endif %}</p>
+
+                    {% comment %} Display context items (code snippets and images) {% endcomment %}
+                    {% if question.context_items.all %}
+                    <div class="context-section">
+                        {% for context in question.context_items.all %}
+                        <div class="context-item">
+                            {% if context.context_type == 'code_snippet' %}
+                                <div class="context-label">
+                                    <i class="bx bx-code-alt"></i>
+                                    Code Snippet
+                                </div>
+                                <pre class="context-code">{{ context.content }}</pre>
+                            {% elif context.context_type == 'image' %}
+                                <div class="context-label">
+                                    <i class="bx bx-image"></i>
+                                    Image
+                                </div>
+                                <img src="{{ context.content }}" alt="Question context image" class="context-image">
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
 
                     {% if question.question_type == 'multiple_choice' %}
                         {% for option in question.options.all %}

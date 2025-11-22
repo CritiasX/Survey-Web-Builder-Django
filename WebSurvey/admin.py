@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     User, Section, Survey, Question, MultipleChoiceOption,
-    TrueFalseAnswer, EnumerationAnswer,
+    TrueFalseAnswer, EnumerationAnswer, QuestionContext,
     StudentResponse, QuestionAnswer
 )
 
@@ -55,12 +55,18 @@ class EnumerationAnswerInline(admin.TabularInline):
     extra = 1
 
 
+class QuestionContextInline(admin.TabularInline):
+    model = QuestionContext
+    extra = 0
+    fields = ['context_type', 'content', 'language', 'order']
+
+
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['question_text', 'survey', 'question_type', 'points', 'order']
     list_filter = ['question_type', 'survey']
     search_fields = ['question_text', 'survey__title']
-    inlines = [MultipleChoiceOptionInline, TrueFalseAnswerInline, EnumerationAnswerInline]
+    inlines = [MultipleChoiceOptionInline, TrueFalseAnswerInline, EnumerationAnswerInline, QuestionContextInline]
 
 
 @admin.register(StudentResponse)
