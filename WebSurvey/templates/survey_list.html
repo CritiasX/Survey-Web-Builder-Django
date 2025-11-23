@@ -229,29 +229,69 @@
     <script src="{% static 'js/dashboard-sidebar.js' %}"></script>
 
     <script>
+        let deleteModalInstance;
+        let alertModalInstance;
+        let surveyToDelete = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteModal'));
+            alertModalInstance = new bootstrap.Modal(document.getElementById('alertModal'));
+        });
+
         function deleteSurvey(surveyId, surveyTitle) {
-            if (confirm(`Are you sure you want to delete "${surveyTitle}"? This action cannot be undone.`)) {
-                fetch(`/surveys/${surveyId}/delete/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert(data.message, 'Success');
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showAlert('Error: ' + data.message, 'Error');
-                    }
-                })
-                .catch(error => {
-                    showAlert('Error deleting survey', 'Error');
-                    console.error(error);
-                });
-            }
+            surveyToDelete = surveyId;
+            document.getElementById('deleteSurveyTitle').textContent = surveyTitle;
+            deleteModalInstance.show();
+        }
+
+        function confirmDelete() {
+            if (!surveyToDelete) return;
+
+            fetch(`/surveys/${surveyToDelete}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                deleteModalInstance.hide();
+                if (data.success) {
+                    showAlert(data.message, 'Success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('Error: ' + data.message, 'Error');
+                }
+            })
+            .catch(error => {
+                deleteModalInstance.hide();
+                showAlert('Error deleting survey', 'Error');
+                console.error(error);
+            });
+        }
+
+        function duplicateSurvey(surveyId) {
+            fetch(`/surveys/${surveyId}/duplicate/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'Success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('Error: ' + data.message, 'Error');
+                }
+            })
+            .catch(error => {
+                showAlert('Error duplicating survey', 'Error');
+                console.error(error);
+            });
         }
 
         function getCookie(name) {
@@ -269,18 +309,39 @@
             return cookieValue;
         }
 
-        // Initialize alert modal
-        let alertModalInstance;
-        document.addEventListener('DOMContentLoaded', function() {
-            alertModalInstance = new bootstrap.Modal(document.getElementById('alertModal'));
-        });
-
         function showAlert(message, title = 'Notice') {
             document.getElementById('alertModalTitle').textContent = title;
             document.getElementById('alertModalBody').textContent = message;
             alertModalInstance.show();
         }
     </script>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bx bx-trash me-2"></i>Delete Survey
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">Are you sure you want to delete <strong id="deleteSurveyTitle"></strong>?</p>
+                    <div class="alert alert-warning mb-0">
+                        <i class="bx bx-error me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All responses and analytics data will be permanently deleted.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                        <i class="bx bx-trash me-1"></i>Delete Survey
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Alert Modal -->
     <div class="modal fade" id="alertModal" tabindex="-1">

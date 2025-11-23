@@ -29,6 +29,7 @@ urlpatterns = [
     path('surveys/save/', views.save_survey, name='save_survey'),
     path('surveys/<int:survey_id>/data/', views.get_survey_data, name='get_survey_data'),
     path('surveys/<int:survey_id>/delete/', views.delete_survey, name='delete_survey'),
+    path('surveys/<int:survey_id>/duplicate/', views.duplicate_survey, name='duplicate_survey'),
     
     # Section management URLs
     path('sections/', views.section_list, name='section_list'),

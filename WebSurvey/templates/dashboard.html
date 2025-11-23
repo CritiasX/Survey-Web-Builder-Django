@@ -231,8 +231,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% if teacher_surveys %}
-                                        {% for survey in teacher_surveys %}
+                                    {% if teacher_surveys_page %}
+                                        {% for survey in teacher_surveys_page %}
                                         <tr>
                                             <td>
                                                 <strong>{{ survey.title }}</strong>
@@ -247,7 +247,7 @@
                                                     {{ survey.get_status_display }}
                                                 </span>
                                             </td>
-                                            <td>{{ survey.responses.count }}</td>
+                                            <td>{{ survey.submitted_response_count }}</td>
                                             <td>{{ survey.created_at|date:"M d, Y" }}</td>
                                             <td>
                                                 <a href="{% url 'survey_edit' survey.id %}" class="btn btn-sm btn-outline-primary">
@@ -267,6 +267,31 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Pagination -->
+                        {% if teacher_surveys_page.has_other_pages %}
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                {% if teacher_surveys_page.has_previous %}
+                                <a href="?page={{ teacher_surveys_page.previous_page_number }}" 
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Previous
+                                </a>
+                                {% endif %}
+                                
+                                <span class="btn btn-sm btn-info text-white">
+                                    Page {{ teacher_surveys_page.number }} of {{ teacher_surveys_page.paginator.num_pages }}
+                                </span>
+                                
+                                {% if teacher_surveys_page.has_next %}
+                                <a href="?page={{ teacher_surveys_page.next_page_number }}" 
+                                   class="btn btn-sm btn-info text-white">
+                                    Next
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

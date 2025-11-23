@@ -123,7 +123,8 @@
             </nav>
         </div>
 
-        <div class="row">
+        <div class="container-fluid px-4 pb-5">
+            <div class="row">
             <div class="col-12">
                 <!-- Student & Survey Info -->
                 <div class="card mb-4 shadow-sm border-light">
@@ -142,9 +143,9 @@
                 {% if answers %}
                     {% for ans in answers %}
                     <div class="card mb-3 shadow-sm" style="border:1px solid #e3e6ea;">
-                        <div class="card-body p-3">
-                            <p class="mb-100"><strong>Q{{ ans.question.order }}:</strong> {{ ans.question.question_text }}</p>
-                            <p class="mb-100"><strong>Answer:</strong>
+                        <div class="card-body">
+                            <p class="mb-2"><strong>Q{{ ans.question.order }}:</strong> {{ ans.question.question_text }}</p>
+                            <p class="mb-2"><strong>Answer:</strong>
                                 {% if ans.selected_option %}
                                     {{ ans.selected_option.option_text }}
                                 {% elif ans.true_false_answer != None %}
@@ -153,7 +154,7 @@
                                     {{ ans.text_answer }}
                                 {% endif %}
                             </p>
-                            <p class="mb-100"><strong>Required:</strong> {{ ans.question.required|yesno:"Yes,No" }}</p>
+                            <p class="mb-0"><strong>Required:</strong> {{ ans.question.required|yesno:"Yes,No" }}</p>
                         </div>
                     </div>
                     {% endfor %}
@@ -164,11 +165,12 @@
                 {% endif %}
 
                 <!-- Back Button -->
-                <div class="mt-3">
+                <div class="mt-4">
                     <a href="{% url 'response_management' %}" class="btn btn-primary">
                         <i class="bx bx-arrow-back me-1"></i>Back to Responses
                     </a>
                 </div>
+            </div>
             </div>
         </div>
     </main>

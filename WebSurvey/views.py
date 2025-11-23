@@ -284,11 +284,22 @@ def dashboardPage(request):
     }
 
     if user.role == 'teacher':
-        teacher_surveys = user.surveys.all().prefetch_related('questions', 'responses')
+        from django.db.models import Count, Q
+        
+        # Get all surveys with submitted response count
+        all_teacher_surveys = user.surveys.annotate(
+            submitted_response_count=Count('responses', filter=Q(responses__is_submitted=True))
+        ).prefetch_related('questions').order_by('-created_at')
+        
+        # Paginate recent surveys (5 per page)
+        page_number = request.GET.get('page', 1)
+        paginator = Paginator(all_teacher_surveys, 5)
+        teacher_surveys_page = paginator.get_page(page_number)
+        
         context.update({
-            'teacher_survey_count': teacher_surveys.count(),
-            'teacher_response_count': StudentResponse.objects.filter(survey__teacher=user).count(),
-            'teacher_surveys': teacher_surveys[:6]
+            'teacher_survey_count': user.surveys.count(),
+            'teacher_response_count': StudentResponse.objects.filter(survey__teacher=user, is_submitted=True).count(),
+            'teacher_surveys_page': teacher_surveys_page
         })
     else:
         context.update(_get_student_survey_data(user))
@@ -749,6 +760,79 @@ def delete_survey(request, survey_id):
 
 
 @login_required
+def duplicate_survey(request, survey_id):
+    """Duplicate a survey with all its questions and options (without responses)"""
+    if request.user.role != 'teacher':
+        return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
+
+    try:
+        # Get the original survey
+        original_survey = get_object_or_404(Survey, id=survey_id, teacher=request.user)
+        
+        # Create a copy of the survey (as draft, without responses)
+        new_survey = Survey.objects.create(
+            teacher=request.user,
+            title=f"{original_survey.title} (Copy)",
+            description=original_survey.description,
+            status='draft',  # Always set as draft
+            due_date=original_survey.due_date,
+            time_limit=original_survey.time_limit
+        )
+        
+        # Copy assigned sections
+        new_survey.sections.set(original_survey.sections.all())
+        
+        # Copy all questions with their options and context items
+        questions = original_survey.questions.all().order_by('order')
+        for question in questions:
+            # Create new question
+            new_question = Question.objects.create(
+                survey=new_survey,
+                question_text=question.question_text,
+                question_type=question.question_type,
+                required=question.required,
+                points=question.points,
+                order=question.order
+            )
+            
+            # Copy multiple choice options if applicable
+            if question.question_type == 'multiple_choice':
+                options = question.options.all()
+                for option in options:
+                    MultipleChoiceOption.objects.create(
+                        question=new_question,
+                        option_text=option.option_text,
+                        is_correct=option.is_correct
+                    )
+            
+            # Copy question context items (code snippets, images, etc.)
+            context_items = question.context_items.all()
+            for context in context_items:
+                QuestionContext.objects.create(
+                    question=new_question,
+                    context_type=context.context_type,
+                    content=context.content,
+                    language=context.language,
+                    order=context.order
+                )
+        
+        # Recalculate total points for the new survey
+        new_survey.calculate_total_points()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Survey duplicated successfully! (No responses copied)',
+            'survey_id': new_survey.id
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error duplicating survey: {str(e)}'
+        }, status=500)
+
+
+@login_required
 def take_survey(request, survey_id):
     """Allow a student to answer a survey assigned to their section."""
     if request.user.role != 'student':
@@ -1044,9 +1128,12 @@ def response_management(request):
     page_obj = paginator.get_page(page_number)
     
     # Get unique surveys with responses for analytics dropdown
+    # Annotate with only submitted response count
     surveys_with_responses = Survey.objects.filter(
         teacher=teacher,
         responses__is_submitted=True
+    ).annotate(
+        submitted_count=Count('responses', filter=Q(responses__is_submitted=True))
     ).distinct().order_by('-created_at')
     
     # Get all sections for this teacher
