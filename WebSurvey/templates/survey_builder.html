@@ -2374,18 +2374,20 @@
                 if (type === 'multiple_choice') {
                     questionData.options = [];
                     const optionItems = card.querySelectorAll('.options-container .option-item');
+                    let nonEmptyCount = 0;
 
                     optionItems.forEach(item => {
                         const textInput = item.querySelector('input[type="text"]');
                         if (textInput) {
                             const text = textInput.value.trim();
                             if (text) {
+                                nonEmptyCount++;
                                 questionData.options.push({ text, is_correct: false });
                             }
                         }
                     });
 
-                    if (questionData.options.length < 2) {
+                    if (nonEmptyCount < 2) {
                         showAlert('Multiple choice questions need at least 2 options', 'Error');
                         hasError = true;
                         return;
