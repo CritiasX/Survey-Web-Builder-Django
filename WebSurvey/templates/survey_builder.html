@@ -501,14 +501,31 @@
         }
 
         .likert-scale-card .option-item {
-            padding: 0.35rem 0.25rem;
+            padding: 0.5rem;
             border-bottom: 1px solid #e3efe8;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e3efe8;
         }
 
         .likert-scale-card .option-item:last-of-type {
-            border-bottom: none;
             margin-bottom: 0.1rem;
+        }
+
+        .likert-value-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.375rem 0.625rem;
+            border-radius: 6px;
+            min-width: 36px;
+            text-align: center;
+            flex-shrink: 0;
         }
 
         .likert-scale-card .option-item input[type="text"] {
@@ -516,6 +533,7 @@
             background: transparent;
             box-shadow: none;
             padding-left: 0;
+            flex: 1;
         }
 
         .likert-scale-card .option-item input[type="text"]:focus {
@@ -2028,23 +2046,37 @@
             } else if (type === 'likert') {
                 questionHtml += `
                     <div class="mb-3">
-                        <label class="form-label">Scale Labels</label>
+                        <label class="form-label">Scale Labels (Optional)</label>
+                        <p class="text-muted small mb-2">Leave labels blank to use numeric values (1, 2, 3, etc.). Each option represents a point on the scale.</p>
                         <div class="likert-scale-card" id="likert-${questionCounter}">
-                            <div class="option-item">
-                                <input type="text" class="form-control" placeholder="Label">
+                            <div class="option-item" data-value="1">
+                                <span class="likert-value-badge">1</span>
+                                <input type="text" class="form-control" placeholder="Label (optional)">
                                 <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                             </div>
-                            <div class="option-item">
-                                <input type="text" class="form-control" placeholder="Label">
+                            <div class="option-item" data-value="2">
+                                <span class="likert-value-badge">2</span>
+                                <input type="text" class="form-control" placeholder="Label (optional)">
                                 <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                             </div>
-                            <div class="option-item">
-                                <input type="text" class="form-control" placeholder="Label">
+                            <div class="option-item" data-value="3">
+                                <span class="likert-value-badge">3</span>
+                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="option-item" data-value="4">
+                                <span class="likert-value-badge">4</span>
+                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="option-item" data-value="5">
+                                <span class="likert-value-badge">5</span>
+                                <input type="text" class="form-control" placeholder="Label (optional)">
                                 <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                             </div>
                         </div>
                         <button type="button" class="btn btn-link p-0 mt-2 likert-add" onclick="addLikertOption(${questionCounter})">
-                            <i class="bx bx-plus"></i> Add Label
+                            <i class="bx bx-plus"></i> Add Point
                         </button>
                     </div>
                 `;
@@ -2281,25 +2313,48 @@
             const container = document.getElementById(`likert-${questionId}`);
             if (!container) return;
 
+            const currentCount = container.querySelectorAll('.option-item').length;
+            const newValue = currentCount + 1;
+
             const optionHtml = `
-                <div class="option-item">
-                    <input type="text" class="form-control" placeholder="Label">
+                <div class="option-item" data-value="${newValue}">
+                    <span class="likert-value-badge">${newValue}</span>
+                    <input type="text" class="form-control" placeholder="Label (optional)">
                     <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', optionHtml);
+            markUnsavedChanges();
         }
 
         function removeLikertOption(btn) {
             const item = btn.closest('.option-item');
             const container = btn.closest('.likert-scale-card');
+
             if (item) {
                 item.remove();
+                markUnsavedChanges();
             }
 
-            // Always keep at least one blank row to guide the user
-            if (container && container.querySelectorAll('.option-item').length === 0) {
-                addLikertOption(container.id.replace('likert-', ''));
+            // Always keep at least 2 options
+            if (container && container.querySelectorAll('.option-item').length < 2) {
+                const questionId = container.id.replace('likert-', '');
+                while (container.querySelectorAll('.option-item').length < 2) {
+                    addLikertOption(questionId);
+                }
+            }
+
+            // Renumber all remaining options
+            if (container) {
+                const items = container.querySelectorAll('.option-item');
+                items.forEach((item, index) => {
+                    const value = index + 1;
+                    item.setAttribute('data-value', value);
+                    const badge = item.querySelector('.likert-value-badge');
+                    if (badge) {
+                        badge.textContent = value;
+                    }
+                });
             }
         }
 
@@ -2401,15 +2456,25 @@
                     }
                 } else if (type === 'likert') {
                     questionData.options = [];
-                    const optionItems = card.querySelectorAll('.likert-scale-card .option-item input[type="text"]');
-                    optionItems.forEach((input, idx) => {
-                        if (input.value.trim()) {
-                            questionData.options.push({ text: input.value.trim(), is_correct: false, order: idx });
-                        }
+                    const optionItems = card.querySelectorAll('.likert-scale-card .option-item');
+                    optionItems.forEach((item, idx) => {
+                        const textInput = item.querySelector('input[type="text"]');
+                        const value = item.getAttribute('data-value') || (idx + 1);
+                        const label = textInput ? textInput.value.trim() : '';
+
+                        // Use label if provided, otherwise use numeric value
+                        const displayText = label || value.toString();
+
+                        questionData.options.push({
+                            text: displayText,
+                            is_correct: false,
+                            order: idx,
+                            value: parseInt(value)
+                        });
                     });
 
                     if (questionData.options.length < 2) {
-                        showAlert('Likert questions need at least 2 labels', 'Error');
+                        showAlert('Likert questions need at least 2 scale points', 'Error');
                         hasError = true;
                         return;
                     }
@@ -2557,10 +2622,16 @@
                             const likertContainer = card.querySelector('.likert-scale-card');
                             if (likertContainer) {
                                 likertContainer.innerHTML = '';
-                                q.options.forEach(opt => {
+                                q.options.forEach((opt, idx) => {
+                                    const value = opt.value || (idx + 1);
+                                    // Check if the text is just a number (meaning it was saved without a label)
+                                    const isNumericOnly = /^\d+$/.test(opt.text);
+                                    const labelText = isNumericOnly ? '' : opt.text;
+
                                     likertContainer.insertAdjacentHTML('beforeend', `
-                                        <div class="option-item">
-                                            <input type="text" class="form-control" value="${opt.text || ''}" placeholder="Label">
+                                        <div class="option-item" data-value="${value}">
+                                            <span class="likert-value-badge">${value}</span>
+                                            <input type="text" class="form-control" value="${labelText || ''}" placeholder="Label (optional)">
                                             <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                                         </div>
                                     `);
@@ -2923,15 +2994,20 @@
                     } else if (type === 'likert') {
                         const options = [];
                         const optionItems = card.querySelectorAll('.likert-scale-card .option-item');
-                        optionItems.forEach((opt, idx) => {
-                            const textInput = opt.querySelector('input[type="text"]');
-                            if (textInput && textInput.value.trim()) {
-                                options.push({
-                                    text: textInput.value.trim(),
-                                    is_correct: false,
-                                    order: idx
-                                });
-                            }
+                        optionItems.forEach((item, idx) => {
+                            const textInput = item.querySelector('input[type="text"]');
+                            const value = item.getAttribute('data-value') || (idx + 1);
+                            const label = textInput ? textInput.value.trim() : '';
+
+                            // Use label if provided, otherwise use numeric value
+                            const displayText = label || value.toString();
+
+                            options.push({
+                                text: displayText,
+                                is_correct: false,
+                                order: idx,
+                                value: parseInt(value)
+                            });
                         });
                         questionData.options = options;
                     } else if (type === 'true_false') {
