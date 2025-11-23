@@ -76,6 +76,39 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             margin-top: 0.5rem;
         }
+
+        /* Progress indicator styling */
+        .survey-progress-card {
+            background: #eaf9f4;
+            border: 1px solid #c8f0e2;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            padding: 1.75rem 2rem;
+        }
+
+        .survey-progress-title {
+            color: #18BC9C;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .survey-progress-track {
+            background: linear-gradient(90deg, #d0f2e8, #e1fbf4);
+            border-radius: 999px;
+            height: 28px;
+            margin-top: 1.25rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .survey-progress-bar {
+            background: linear-gradient(90deg, #18BC9C, #16a085);
+            border-radius: 999px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+            height: 100%;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
     </style>
 </head>
 
@@ -183,6 +216,21 @@
                 {% endfor %}
             {% endif %}
 
+            {% if questions %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="survey-progress-card text-center" id="surveyProgressCard" data-total-questions="{{ questions|length }}">
+                        <h4 class="survey-progress-title mb-0">
+                            Question (<span id="answeredCount">0</span> / <span id="totalCount">{{ questions|length }}</span>)
+                        </h4>
+                        <div class="survey-progress-track" aria-hidden="true">
+                            <div class="survey-progress-bar" id="surveyProgressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="row mb-4">
                 <div class="col-lg-8">
                     <div class="dashboard-card">
@@ -217,7 +265,7 @@
             <form method="post" class="mb-5">
                 {% csrf_token %}
                 {% for question in questions %}
-                <div class="question-card">
+                <div class="question-card" data-question-id="{{ question.id }}" data-question-type="{{ question.question_type }}">
                     <!-- Question Header -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -313,6 +361,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/dashboard-sidebar.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const questionCards = Array.from(document.querySelectorAll('.question-card[data-question-id]'));
+            const answeredCountEl = document.getElementById('answeredCount');
+            const totalCountEl = document.getElementById('totalCount');
+            const progressBarEl = document.getElementById('surveyProgressBar');
+
+            if (!progressBarEl || !answeredCountEl || !totalCountEl || !questionCards.length) {
+                return;
+            }
+
+            const totalQuestions = questionCards.length;
+            totalCountEl.textContent = totalQuestions;
+
+            const isAnswered = (card) => {
+                const type = card.dataset.questionType;
+                if (type === 'multiple_choice' || type === 'true_false') {
+                    return Boolean(card.querySelector('input[type="radio"]:checked'));
+                }
+
+                const textarea = card.querySelector('textarea');
+                if (textarea) {
+                    return textarea.value.trim().length > 0;
+                }
+
+                const input = card.querySelector('input');
+                return input ? input.value.trim().length > 0 : false;
+            };
+
+            const updateProgress = () => {
+                const answered = questionCards.reduce(
+                    (count, card) => count + (isAnswered(card) ? 1 : 0),
+                    0
+                );
+                const percent = totalQuestions ? Math.round((answered / totalQuestions) * 100) : 0;
+
+                answeredCountEl.textContent = answered;
+                progressBarEl.style.width = `${percent}%`;
+                progressBarEl.setAttribute('aria-valuenow', percent);
+            };
+
+            const fields = document.querySelectorAll('.question-card input, .question-card textarea');
+            fields.forEach((field) => {
+                const eventName = field.tagName === 'TEXTAREA' ? 'input' : 'change';
+                field.addEventListener(eventName, updateProgress);
+            });
+
+            updateProgress();
+        });
+    </script>
 </body>
 
 </html>
