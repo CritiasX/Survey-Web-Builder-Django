@@ -538,7 +538,7 @@ def save_survey(request):
 
                         # Only add points and required for actual questions, not text elements
                         if not is_text_element:
-                            base_kwargs['points'] = float(q_data.get('points', 1)) if q_data.get('points') not in (None, '', 'None') else 1.0
+                            base_kwargs['points'] = 0  # points removed for survey mode
                             base_kwargs['required'] = bool(q_data.get('required', True))
                         else:
                             base_kwargs['points'] = 0  # Text elements have no points

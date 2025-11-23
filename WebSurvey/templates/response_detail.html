@@ -153,7 +153,7 @@
                                     {{ ans.text_answer }}
                                 {% endif %}
                             </p>
-                            <p class="mb-100"><strong>Points Earned:</strong> {{ ans.points_earned|default:"-" }}</p>
+                            <p class="mb-100"><strong>Required:</strong> {{ ans.question.required|yesno:"Yes,No" }}</p>
                         </div>
                     </div>
                     {% endfor %}

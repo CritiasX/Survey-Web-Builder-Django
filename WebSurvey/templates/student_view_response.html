@@ -133,7 +133,6 @@
                     {% else %}
                         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Optional</span>
                     {% endif %}
-                    <span class="ms-2">{{ answer.question.points }} pts</span>
                 </div>
                 <div class="response-box p-3 bg-light rounded">
                     {% if answer.question.question_type == 'multiple_choice' or answer.question.question_type == 'likert' %}

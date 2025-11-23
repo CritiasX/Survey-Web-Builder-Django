@@ -343,7 +343,7 @@
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <span class="badge bg-light text-dark">{{ question.get_question_type_display }}</span>
-                            <span class="text-muted small">{{ question.points }} point{% if question.points|default:0 > 1 %}s{% endif %} • {% if question.required %}Required{% else %}Optional{% endif %}</span>
+                            <span class="text-muted small">{% if question.required %}Required{% else %}Optional{% endif %}</span>
                         </div>
                         <div style="font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin-top: 0.75rem; line-height: 1.5;">
                             <strong>{{ forloop.counter }}.</strong> {{ question.question_text|default:"[No question text]" }}

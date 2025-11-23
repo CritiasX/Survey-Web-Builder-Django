@@ -627,7 +627,6 @@
         .student-view-mode .question-tf-answer,
         .student-view-mode .question-max-chars,
         .student-view-mode .enum-answers-container,
-        .student-view-mode .row:has(.question-points),
         .student-view-mode .question-header-left h5,
         .student-view-mode .form-label,
         .student-view-mode label {
@@ -706,13 +705,6 @@
             color: #2c3e50;
             line-height: 1.5;
             margin-bottom: 0.5rem;
-        }
-
-        .student-view-mode .student-points-info {
-            font-size: 0.875rem;
-            color: #6c757d;
-            margin-bottom: 1rem !important;
-            font-weight: 400;
         }
 
         /* Multiple choice options - beautiful styling */
@@ -2021,16 +2013,10 @@
                         <label class="form-label">Question Text</label>
                         <input type="text" class="form-control question-text" placeholder="Enter question text">
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Points</label>
-                            <input type="number" class="form-control question-points" value="1" min="0">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check mt-4">
-                                <input class="form-check-input question-required" type="checkbox" checked>
-                                <label class="form-check-label">Required</label>
-                            </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input question-required" type="checkbox" checked>
+                            <label class="form-check-label">Required</label>
                         </div>
                     </div>
                 `;
@@ -2042,7 +2028,6 @@
                         <label class="form-label">Options</label>
                         <div class="options-container" id="options-${questionCounter}">
                             <div class="option-item">
-                                <input type="radio" name="correct-${questionCounter}">
                                 <input type="text" class="form-control" placeholder="Option 1">
                                 <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
                             </div>
@@ -2058,15 +2043,15 @@
                         <label class="form-label">Scale Labels</label>
                         <div class="likert-scale-card" id="likert-${questionCounter}">
                             <div class="option-item">
-                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <input type="text" class="form-control" placeholder="Label">
                                 <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                             </div>
                             <div class="option-item">
-                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <input type="text" class="form-control" placeholder="Label">
                                 <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                             </div>
                             <div class="option-item">
-                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <input type="text" class="form-control" placeholder="Label">
                                 <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                             </div>
                         </div>
@@ -2302,7 +2287,6 @@
             const optionCount = container.children.length + 1;
             const optionHtml = `
                 <div class="option-item">
-                    <input type="radio" name="correct-${questionId}">
                     <input type="text" class="form-control" placeholder="Option ${optionCount}">
                     <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
                 </div>
@@ -2316,7 +2300,7 @@
 
             const optionHtml = `
                 <div class="option-item">
-                    <input type="text" class="form-control" placeholder="Label (optional)">
+                    <input type="text" class="form-control" placeholder="Label">
                     <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                 </div>
             `;
@@ -2405,13 +2389,8 @@
                     text: textEl.value.trim()
                 };
 
-                // Add points and required with null checks
-                const pointsEl = card.querySelector('.question-points');
+                // Add required flag
                 const requiredEl = card.querySelector('.question-required');
-
-                if (pointsEl) {
-                    questionData.points = parseInt(pointsEl.value) || 1;
-                }
                 if (requiredEl) {
                     questionData.required = requiredEl.checked;
                 }
@@ -2419,28 +2398,19 @@
                 if (type === 'multiple_choice') {
                     questionData.options = [];
                     const optionItems = card.querySelectorAll('.options-container .option-item');
-                    let hasCorrect = false;
 
                     optionItems.forEach(item => {
                         const textInput = item.querySelector('input[type="text"]');
-                        const radioInput = item.querySelector('input[type="radio"]');
-                        if (textInput && radioInput) {
+                        if (textInput) {
                             const text = textInput.value.trim();
-                            const isCorrect = radioInput.checked;
-                            if (isCorrect) hasCorrect = true;
                             if (text) {
-                                questionData.options.push({ text, is_correct: isCorrect });
+                                questionData.options.push({ text, is_correct: false });
                             }
                         }
                     });
 
                     if (questionData.options.length < 2) {
                         showAlert('Multiple choice questions need at least 2 options', 'Error');
-                        hasError = true;
-                        return;
-                    }
-                    if (!hasCorrect) {
-                        showAlert('Please mark the correct answer for multiple choice questions', 'Error');
                         hasError = true;
                         return;
                     }
@@ -2585,10 +2555,7 @@
                         const textEl = card.querySelector('.question-text');
                         if (textEl) textEl.value = q.text || '';
 
-                        // Set points and required (only for non-text elements)
-                        const pointsEl = card.querySelector('.question-points');
-                        if (pointsEl) pointsEl.value = q.points || 1;
-
+                        // Set required (only for non-text elements)
                         const requiredEl = card.querySelector('.question-required');
                         if (requiredEl) requiredEl.checked = q.required !== false;
 
@@ -2600,7 +2567,6 @@
                                 q.options.forEach((opt, idx) => {
                                     optionsContainer.insertAdjacentHTML('beforeend', `
                                         <div class="option-item">
-                                            <input type="radio" name="correct-${questionCounter}" ${opt.is_correct ? 'checked' : ''}>
                                             <input type="text" class="form-control" value="${opt.text || ''}">
                                             <button class="btn-remove" onclick="removeOption(this)"><i class="bx bx-x"></i></button>
                                         </div>
@@ -2614,7 +2580,7 @@
                                 q.options.forEach(opt => {
                                     likertContainer.insertAdjacentHTML('beforeend', `
                                         <div class="option-item">
-                                            <input type="text" class="form-control" value="${opt.text || ''}" placeholder="Label (optional)">
+                                            <input type="text" class="form-control" value="${opt.text || ''}" placeholder="Label">
                                             <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
                                         </div>
                                     `);
@@ -2723,7 +2689,6 @@
                     const questionText = card.querySelector('.question-text');
                     const questionTextValue = questionText ? questionText.value : '[No question text]';
 
-                    const points = card.querySelector('.question-points')?.value || 1;
                     const required = card.querySelector('.question-required')?.checked;
 
                     const displayDiv = document.createElement('div');
@@ -2731,7 +2696,7 @@
                     displayDiv.innerHTML = `
                         <div style="margin-bottom: 0.5rem;">
                             <span class="badge bg-light text-dark" style="font-size: 0.7rem;">${card.querySelector('.question-type-badge')?.textContent || type}</span>
-                            <span class="text-muted small" style="margin-left: 0.5rem;">${points} point${points > 1 ? 's' : ''} • ${required ? 'Required' : 'Optional'}</span>
+                            <span class="text-muted small" style="margin-left: 0.5rem;">${required ? 'Required' : 'Optional'}</span>
                         </div>
                         <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem;">
                             <strong>${questionNumber}.</strong> ${questionTextValue}
@@ -2803,9 +2768,6 @@
 
             // Remove question numbers
             document.querySelectorAll('.student-question-number').forEach(el => el.remove());
-
-            // Remove points info
-            document.querySelectorAll('.student-points-info').forEach(el => el.remove());
 
             // Remove true/false radios
             document.querySelectorAll('.student-tf-radio').forEach(el => el.remove());
@@ -2961,13 +2923,9 @@
                     return;
                 }
 
-                // Add points and required (with null checks) - only for actual questions
-                const pointsEl = card.querySelector('.question-points');
+                // Add required (with null checks) - only for actual questions
                 const requiredEl = card.querySelector('.question-required');
 
-                if (pointsEl) {
-                    questionData.points = parseFloat(pointsEl.value) || 1;
-                }
                 if (requiredEl) {
                     questionData.required = requiredEl.checked;
                 }
@@ -2979,11 +2937,10 @@
                         const optionItems = card.querySelectorAll('.options-container .option-item');
                         optionItems.forEach((opt, idx) => {
                             const textInput = opt.querySelector('input[type="text"]');
-                            const radioInput = opt.querySelector('input[type="radio"]');
                             if (textInput && textInput.value.trim()) {
                                 options.push({
                                     text: textInput.value.trim(),
-                                    is_correct: radioInput ? radioInput.checked : false,
+                                    is_correct: false,
                                     order: idx
                                 });
                             }
