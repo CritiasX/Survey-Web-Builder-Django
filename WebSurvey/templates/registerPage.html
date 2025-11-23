@@ -5,31 +5,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>SurveyWeb</title>
+    <title>Register - ResponsePro</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
     <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
     <link rel="stylesheet" href="{% static 'css/Navbar-Centered-Links-icons.css' %}">
     <link rel="stylesheet" href="{% static 'css/Sidebar-Menu-sidebar.css' %}">
+</head>
 
-    <div class="container my-5">
 <body class="d-flex flex-column min-vh-100">
-            <div class="col-lg-10 col-xl-9">
-                <div class="card border-0 shadow-lg" data-aos="fade-up" data-aos-duration="600">
-                    <div class="row g-0">
-                        <!-- Left side: Welcome section -->
-                        <div class="col-md-5 d-none d-md-flex align-items-center justify-content-center bg-primary text-white rounded-start" style="background: linear-gradient(135deg, #2C3E50 0%, #18BC9C 100%);" data-aos="fade-right" data-aos-duration="500">
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10 col-xl-9">
-                <div class="card border-0 shadow-lg">
-                    <div class="row g-0">
-                        <!-- Left side: Welcome section -->
-                        <div class="col-md-5 d-none d-md-flex align-items-center justify-content-center bg-primary text-white rounded-start" style="background: linear-gradient(135deg, #2C3E50 0%, #18BC9C 100%);">
-                            <div class="p-5 text-center">
-                                <i class="bx bx-spreadsheet display-1 mb-4"></i>
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-lg-10 col-xl-9">
@@ -57,7 +42,7 @@
                                 </div>
                             </div>
                         </div>
-                            </div>
+
                         <!-- Right side: Registration form -->
                         <div class="col-md-7">
                             <div class="p-4 p-lg-5">
@@ -65,18 +50,18 @@
                                     <h2 class="fw-bold mb-2">Create Your Account</h2>
                                     <p class="text-muted">Already have an account? <a href="{% url 'login' %}" class="text-decoration-none fw-bold">Sign In</a></p>
                                 </div>
-                                <div class="text-center mb-4">
+
                                 <div id="alert-container"></div>
-                                </div>
+
                                 <form method="POST" id="registerForm">
                                     {% csrf_token %}
-                                    <h2 class="fw-bold mb-2">Create Your Account</h2>
+                                    
                                     <div class="row g-3 mb-3">
                                         <div class="col-md-6">
                                             <label for="first_name" class="form-label">First Name</label>
                                             <input class="form-control form-control-lg" type="text" id="first_name" name="first_name" placeholder="John" required>
                                         </div>
-
+                                        <div class="col-md-6">
                                             <label for="last_name" class="form-label">Last Name</label>
                                             <input class="form-control form-control-lg" type="text" id="last_name" name="last_name" placeholder="Doe" required>
                                         </div>
@@ -101,61 +86,9 @@
                                         <label for="password_confirm" class="form-label">Confirm Password</label>
                                         <input class="form-control form-control-lg" type="password" id="password_confirm" name="password_confirm" placeholder="••••••••" required>
                                     </div>
-                                        <div class="col-md-6">
+
                                     <input type="hidden" name="role" value="student">
-                                            <input class="form-control form-control-lg" type="text" id="last_name" name="last_name" placeholder="Doe" required>
-                                    <div class="mb-4">
-                                        <label for="section" class="form-label">Section <span class="text-muted">(provided by teacher)</span></label>
-                                        <select class="form-select form-select-lg" name="section" id="section" required>
-                                            <option value="" selected>Choose your section...</option>
-                                            {% for sec in sections %}
-                                                <option value="{{ sec.id }}">{{ sec.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                    <button class="btn btn-primary btn-lg w-100 ripple" type="submit">
-                                        <span class="button-text">Create Account</span>
-                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                                        <label for="password" class="form-label">Password</label>
-                                        <input class="form-control form-control-lg" type="password" id="password" name="password" placeholder="••••••••" required>
-                                    </div>
 
-                                    <div class="mb-3">
-                                        <label for="password_confirm" class="form-label">Confirm Password</label>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-                                    <div class="mb-4">
-                                        <select class="form-select form-select-lg" name="section" id="section" required>
-                                            <option value="" selected>Choose your section...</option>
-                                            {% for sec in sections %}
-                                                <option value="{{ sec.id }}">{{ sec.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    </div>
-                                    <button class="btn btn-primary btn-lg w-100 ripple" type="submit">
-                                        <span class="button-text">Create Account</span>
-                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="password" class="form-label">Password</label>
-                                        <input class="form-control form-control-lg" type="password" id="password" name="password" placeholder="••••••••" required>
-                                    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-                                    <input type="hidden" name="role" value="student">
                                     <div class="mb-4">
                                         <label for="section" class="form-label">Section <span class="text-muted">(provided by teacher)</span></label>
                                         <select class="form-select form-select-lg" name="section" id="section" required>
@@ -182,10 +115,8 @@
     {% include 'reuseable/footer.html' %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script src="{% static 'js/bs-init.js' %}"></script>
     <script src="{% static 'js/Sidebar-Menu-sidebar.js' %}"></script>
-    <script src="{% static 'js/page-animations.js' %}"></script>
 
     <script>
     $(document).ready(function() {

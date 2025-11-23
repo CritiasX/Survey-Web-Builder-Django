@@ -18,6 +18,10 @@ urlpatterns = [
     path('student/surveys/<int:survey_id>/take/', views.take_survey, name='take_survey'),
     path('logout/', views.logoutPage, name='logout'),
     
+    # Profile and Settings URLs
+    path('profile/', views.profile_page, name='profile'),
+    path('settings/', views.settings_page, name='settings'),
+    
     # Survey builder URLs
     path('surveys/', views.survey_list, name='survey_list'),
     path('surveys/create/', views.survey_builder, name='survey_create'),
@@ -40,4 +44,5 @@ urlpatterns = [
     # Analytics URLs (Teacher only)
     path('analytics/', views.overall_analytics, name='overall_analytics'),
     path('surveys/<int:survey_id>/analytics/', views.survey_analytics, name='survey_analytics'),
+    path('surveys/<int:survey_id>/analytics/data/', views.survey_analytics_data, name='survey_analytics_data'),
 ]

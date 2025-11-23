@@ -395,12 +395,16 @@ def student_view_response(request, response_id):
         is_submitted=True
     )
 
-    answers = (
-        response.answers
-        .select_related('question', 'selected_option')
-        .prefetch_related('question__enumeration_answers')
-        .order_by('question__order')
-    )
+    # Get all answers for this response
+    answers = QuestionAnswer.objects.filter(
+        response=response
+    ).select_related(
+        'question', 
+        'selected_option'
+    ).prefetch_related(
+        'question__options',
+        'question__enumeration_answers'
+    ).order_by('question__order')
 
     context = {
         'user': request.user,
@@ -1137,13 +1141,14 @@ def survey_analytics(request, survey_id):
                 # Combine all text and count word frequencies
                 combined_text = ' '.join(text_answers).lower()
                 words = combined_text.split()
-                # Filter out common words
+                # Filter out common words only
                 stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
                              'of', 'with', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
                              'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
                              'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those'}
-                words = [w for w in words if w not in stop_words and len(w) > 2]
+                words = [w for w in words if w not in stop_words and len(w) > 1]
                 word_freq = Counter(words)
+                # Get top 50 most common words
                 top_words = word_freq.most_common(50)
                 
                 chart_info['data'] = {
@@ -1160,8 +1165,9 @@ def survey_analytics(request, survey_id):
                 words = combined_text.split()
                 stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
                              'of', 'with', 'is', 'are', 'was', 'were', 'be', 'been', 'being'}
-                words = [w for w in words if w not in stop_words and len(w) > 2]
+                words = [w for w in words if w not in stop_words and len(w) > 1]
                 word_freq = Counter(words)
+                # Get top 50 most common words
                 top_words = word_freq.most_common(50)
                 
                 chart_info['data'] = {
@@ -1179,6 +1185,116 @@ def survey_analytics(request, survey_id):
     }
     
     return render(request, 'survey_analytics.html', context)
+
+
+@login_required
+def survey_analytics_data(request, survey_id):
+    """API endpoint to fetch real-time analytics data"""
+    survey = get_object_or_404(Survey, id=survey_id, teacher=request.user)
+    
+    # Get all submitted responses for this survey
+    responses = StudentResponse.objects.filter(
+        survey=survey,
+        is_submitted=True
+    ).select_related('student')
+    
+    # Get all questions for this survey
+    questions = survey.questions.all().prefetch_related(
+        'options',
+        'true_false_answer',
+        'enumeration_answers'
+    )
+    
+    charts_data = []
+    
+    for question in questions:
+        chart_info = {
+            'question_text': question.question_text,
+            'type': question.question_type,
+            'data': {}
+        }
+        
+        # Get all answers for this question
+        answers = QuestionAnswer.objects.filter(
+            question=question,
+            response__in=responses
+        )
+        
+        if question.question_type in ['multiple_choice', 'likert']:
+            # Prepare data for pie chart and bar chart
+            labels = []
+            values = []
+            for option in question.options.all():
+                count = answers.filter(selected_option=option).count()
+                labels.append(option.option_text)
+                values.append(count)
+            
+            if sum(values) > 0:
+                chart_info['data'] = {
+                    'labels': labels,
+                    'values': values
+                }
+        
+        elif question.question_type == 'true_false':
+            # Prepare data for true/false pie chart
+            true_count = answers.filter(true_false_answer=True).count()
+            false_count = answers.filter(true_false_answer=False).count()
+            
+            if true_count + false_count > 0:
+                chart_info['data'] = {
+                    'labels': ['True', 'False'],
+                    'values': [true_count, false_count]
+                }
+        
+        elif question.question_type == 'essay':
+            # Prepare word frequency data for word cloud
+            text_answers = answers.exclude(text_answer='').values_list('text_answer', flat=True)
+            
+            if text_answers:
+                # Combine all text and count word frequencies
+                combined_text = ' '.join(text_answers).lower()
+                words = combined_text.split()
+                # Filter out common words only
+                stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
+                             'of', 'with', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+                             'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+                             'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those'}
+                words = [w for w in words if w not in stop_words and len(w) > 1]
+                word_freq = Counter(words)
+                # Get top 50 most common words
+                top_words = word_freq.most_common(50)
+                
+                chart_info['data'] = {
+                    'words': [{'text': word, 'size': count} for word, count in top_words],
+                    'total_responses': len(text_answers)
+                }
+        
+        elif question.question_type == 'enumeration':
+            # Prepare word frequency data for enumeration
+            text_answers = answers.exclude(text_answer='').values_list('text_answer', flat=True)
+            
+            if text_answers:
+                combined_text = ' '.join(text_answers).lower()
+                words = combined_text.split()
+                stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+                             'of', 'with', 'is', 'are', 'was', 'were', 'be', 'been', 'being'}
+                words = [w for w in words if w not in stop_words and len(w) > 1]
+                word_freq = Counter(words)
+                # Get top 50 most common words
+                top_words = word_freq.most_common(50)
+                
+                chart_info['data'] = {
+                    'words': [{'text': word, 'size': count} for word, count in top_words],
+                    'total_responses': len(text_answers)
+                }
+        
+        if chart_info['data']:
+            charts_data.append(chart_info)
+    
+    return JsonResponse({
+        'charts_data': charts_data,
+        'total_responses': responses.count(),
+    })
 
 
 @login_required
@@ -1214,3 +1330,69 @@ def overall_analytics(request):
     }
     
     return render(request, 'overall_analytics.html', context)
+
+
+@login_required
+def profile_page(request):
+    """View and edit user profile"""
+    if request.method == 'POST':
+        user = request.user
+        
+        # Update user information
+        user.first_name = request.POST.get('first_name', '').strip()
+        user.last_name = request.POST.get('last_name', '').strip()
+        user.email = request.POST.get('email', '').strip()
+        
+        try:
+            user.save()
+            messages.success(request, 'Profile updated successfully!')
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
+        
+        return redirect('profile')
+    
+    return render(request, 'profile.html')
+
+
+@login_required
+def settings_page(request):
+    """User settings page - change password and view account info"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'change_password':
+            current_password = request.POST.get('current_password')
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            
+            # Validate current password
+            if not request.user.check_password(current_password):
+                messages.error(request, 'Current password is incorrect.')
+                return redirect('settings')
+            
+            # Validate new password
+            if len(new_password) < 8:
+                messages.error(request, 'New password must be at least 8 characters long.')
+                return redirect('settings')
+            
+            # Validate password confirmation
+            if new_password != confirm_password:
+                messages.error(request, 'New passwords do not match.')
+                return redirect('settings')
+            
+            # Change password
+            try:
+                request.user.set_password(new_password)
+                request.user.save()
+                
+                # Keep user logged in after password change
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+                
+                messages.success(request, 'Password changed successfully!')
+            except Exception as e:
+                messages.error(request, f'Error changing password: {str(e)}')
+        
+        return redirect('settings')
+    
+    return render(request, 'settings.html')

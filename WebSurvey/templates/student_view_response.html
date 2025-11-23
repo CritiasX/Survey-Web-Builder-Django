@@ -66,14 +66,14 @@
             <div class="nav-section-title">Account</div>
 
             <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'profile' %}" class="sidebar-nav-link">
                     <i class="bx bx-user"></i>
                     <span>Profile</span>
                 </a>
             </div>
 
             <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'settings' %}" class="sidebar-nav-link">
                     <i class="bx bx-cog"></i>
                     <span>Settings</span>
                 </a>
@@ -120,38 +120,59 @@
 
             {% for answer in answers %}
             <div class="dashboard-card mb-3">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <h6 class="mb-1">Question {{ forloop.counter }}</h6>
-                        <p class="mb-0">{{ answer.question.question_text }}</p>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">Q{{ forloop.counter }}</span>
+                            <h6 class="mb-0">{{ answer.question.question_text }}</h6>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="badge bg-info text-white">
+                                <i class="bx 
+                                {% if answer.question.question_type == 'multiple_choice' %}bx-check-square
+                                {% elif answer.question.question_type == 'likert' %}bx-slider-alt
+                                {% elif answer.question.question_type == 'true_false' %}bx-checkbox
+                                {% elif answer.question.question_type == 'essay' %}bx-edit
+                                {% elif answer.question.question_type == 'enumeration' %}bx-list-ul
+                                {% endif %} me-1"></i>
+                                {{ answer.question.get_question_type_display }}
+                            </span>
+                            {% if answer.question.required %}
+                                <span class="badge bg-success">Required</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Optional</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <span class="badge bg-light text-dark">{{ answer.question.get_question_type_display }}</span>
                 </div>
-                <div class="text-muted small mb-2">
-                    {% if answer.question.required %}
-                        <span class="badge bg-success-subtle text-success border border-success-subtle">Required</span>
-                    {% else %}
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Optional</span>
-                    {% endif %}
-                </div>
-                <div class="response-box p-3 bg-light rounded">
+                
+                <div class="bg-light p-4 rounded border-start border-4 border-primary">
+                    <h6 class="text-muted small mb-2"><i class="bx bx-message-detail me-1"></i>Your Answer:</h6>
                     {% if answer.question.question_type == 'multiple_choice' or answer.question.question_type == 'likert' %}
                         {% if answer.selected_option %}
-                            <p class="mb-0"><strong>Your answer:</strong> {{ answer.selected_option.option_text }}</p>
+                            <div class="d-flex align-items-center">
+                                <i class="bx bx-check-circle text-success fs-4 me-2"></i>
+                                <strong class="fs-5">{{ answer.selected_option.option_text }}</strong>
+                            </div>
                         {% else %}
-                            <p class="mb-0 text-danger">No option selected.</p>
+                            <p class="mb-0 text-danger"><i class="bx bx-x-circle me-1"></i>No option selected.</p>
                         {% endif %}
                     {% elif answer.question.question_type == 'true_false' %}
                         {% if answer.true_false_answer is not None %}
-                            <p class="mb-0"><strong>Your answer:</strong> {{ answer.true_false_answer|yesno:"True,False" }}</p>
+                            <div class="d-flex align-items-center">
+                                <i class="bx bx-{{ answer.true_false_answer|yesno:'check-circle,x-circle' }} text-{{ answer.true_false_answer|yesno:'success,danger' }} fs-4 me-2"></i>
+                                <strong class="fs-5">{{ answer.true_false_answer|yesno:"True,False" }}</strong>
+                            </div>
                         {% else %}
-                            <p class="mb-0 text-danger">No selection.</p>
+                            <p class="mb-0 text-danger"><i class="bx bx-x-circle me-1"></i>No selection.</p>
                         {% endif %}
                     {% else %}
                         {% if answer.text_answer %}
-                            <p class="mb-0" style="white-space: pre-wrap;"><strong>Your answer:</strong><br>{{ answer.text_answer }}</p>
+                            <div class="p-3 bg-white rounded border">
+                                <p class="mb-0" style="white-space: pre-wrap; font-size: 1.1rem;">{{ answer.text_answer }}</p>
+                            </div>
                         {% else %}
-                            <p class="mb-0 text-danger">No response provided.</p>
+                            <p class="mb-0 text-danger"><i class="bx bx-x-circle me-1"></i>No response provided.</p>
                         {% endif %}
                     {% endif %}
                 </div>

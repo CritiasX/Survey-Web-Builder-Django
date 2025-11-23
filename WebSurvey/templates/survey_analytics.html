@@ -142,13 +142,13 @@
 
             <div class="nav-section-title">Account</div>
             <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'profile' %}" class="sidebar-nav-link">
                     <i class="bx bx-user"></i>
                     <span>Profile</span>
                 </a>
             </div>
             <div class="sidebar-nav-item">
-                <a href="#" class="sidebar-nav-link">
+                <a href="{% url 'settings' %}" class="sidebar-nav-link">
                     <i class="bx bx-cog"></i>
                     <span>Settings</span>
                 </a>
@@ -156,8 +156,8 @@
         </nav>
 
         <!-- Logout Button -->
-        <div class="sidebar-footer">
-            <a href="{% url 'logout' %}" class="sidebar-nav-link logout">
+        <div class="sidebar-logout">
+            <a href="{% url 'logout' %}" class="logout-btn">
                 <i class="bx bx-log-out"></i>
                 <span>Logout</span>
             </a>
@@ -217,21 +217,63 @@
     <script src="{% static 'js/dashboard-sidebar.js' %}"></script>
     
     <script>
-        // Parse charts data from Django
-        const chartsData = {{ charts_data|safe }};
+        // Parse initial charts data from Django
+        const surveyId = {{ survey.id }};
+        let chartsData = {{ charts_data|safe }};
         const chartsContainer = document.getElementById('chartsContainer');
         const noDataMessage = document.getElementById('noDataMessage');
         
-        if (!chartsData || chartsData.length === 0) {
-            noDataMessage.style.display = 'block';
-        } else {
-            // Color palettes
-            const colors = [
-                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
-            ];
+        // Store chart instances for updating
+        let chartInstances = {};
+        let isInitialRender = true;
+        
+        // Color palettes
+        const colors = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+        ];
+        
+        function updateChartData(chartInstance, newData) {
+            if (!chartInstance || !chartInstance.data) return;
             
-            chartsData.forEach((chartInfo, index) => {
+            // Update chart data smoothly
+            chartInstance.data.labels = newData.labels;
+            chartInstance.data.datasets[0].data = newData.values;
+            chartInstance.update('none'); // No animation for instant updates
+        }
+        
+        function renderCharts(data) {
+            if (!data || data.length === 0) {
+                noDataMessage.style.display = 'block';
+                if (isInitialRender) {
+                    chartsContainer.innerHTML = '';
+                    chartInstances = {};
+                }
+                return;
+            }
+            
+            noDataMessage.style.display = 'none';
+            
+            // If not initial render, just update existing charts
+            if (!isInitialRender) {
+                data.forEach((chartInfo, index) => {
+                    if (chartInfo.type === 'multiple_choice' || chartInfo.type === 'true_false' || chartInfo.type === 'likert') {
+                        if (chartInstances[`pie${index}`]) {
+                            updateChartData(chartInstances[`pie${index}`], chartInfo.data);
+                        }
+                        if (chartInstances[`bar${index}`]) {
+                            updateChartData(chartInstances[`bar${index}`], chartInfo.data);
+                        }
+                    }
+                });
+                return;
+            }
+            
+            // Initial render only
+            chartsContainer.innerHTML = '';
+            chartInstances = {};
+            
+            data.forEach((chartInfo, index) => {
                 // Create chart card
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'chart-card';
@@ -272,7 +314,7 @@
                 cardDiv.appendChild(badgeDiv);
                 
                 // Create charts based on type
-                if (chartInfo.type === 'multiple_choice' || chartInfo.type === 'true_false') {
+                if (chartInfo.type === 'multiple_choice' || chartInfo.type === 'true_false' || chartInfo.type === 'likert') {
                     // Create two canvas elements (pie and bar)
                     const chartsRow = document.createElement('div');
                     chartsRow.className = 'row mb-3';
@@ -300,7 +342,7 @@
                     
                     // Create Pie Chart
                     const pieCtx = document.getElementById(`pieChart${index}`).getContext('2d');
-                    new Chart(pieCtx, {
+                    chartInstances[`pie${index}`] = new Chart(pieCtx, {
                         type: 'pie',
                         data: {
                             labels: chartInfo.data.labels,
@@ -335,7 +377,7 @@
                     
                     // Create Bar Chart
                     const barCtx = document.getElementById(`barChart${index}`).getContext('2d');
-                    new Chart(barCtx, {
+                    chartInstances[`bar${index}`] = new Chart(barCtx, {
                         type: 'bar',
                         data: {
                             labels: chartInfo.data.labels,
@@ -383,23 +425,60 @@
                     const wordList = chartInfo.data.words.map(w => [w.text, w.size * 10]);
                     
                     // Create word cloud
-                    WordCloud(document.getElementById(`wordCloud${index}`), {
-                        list: wordList,
-                        gridSize: 8,
-                        weightFactor: 2,
-                        fontFamily: 'Lato, sans-serif',
-                        color: function() {
-                            const cloudColors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'];
-                            return cloudColors[Math.floor(Math.random() * cloudColors.length)];
-                        },
-                        rotateRatio: 0.3,
-                        backgroundColor: '#ffffff'
-                    });
+                    setTimeout(() => {
+                        WordCloud(document.getElementById(`wordCloud${index}`), {
+                            list: wordList,
+                            gridSize: 8,
+                            weightFactor: 2,
+                            fontFamily: 'Lato, sans-serif',
+                            color: function() {
+                                const cloudColors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'];
+                                return cloudColors[Math.floor(Math.random() * cloudColors.length)];
+                            },
+                            rotateRatio: 0.3,
+                            backgroundColor: '#ffffff'
+                        });
+                    }, 100);
                 } else {
                     chartsContainer.appendChild(cardDiv);
                 }
             });
+            
+            // Mark initial render as complete
+            isInitialRender = false;
         }
+        
+        // Function to fetch updated analytics data
+        async function fetchAnalyticsData() {
+            try {
+                const response = await fetch(`/surveys/${surveyId}/analytics/data/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    chartsData = data.charts_data;
+                    
+                    // Update total responses count
+                    const totalResponsesElement = document.querySelector('.analytics-header .stats-badge');
+                    if (totalResponsesElement) {
+                        totalResponsesElement.textContent = `${data.total_responses} Total Responses`;
+                    }
+                    
+                    // Update charts without re-rendering the page
+                    renderCharts(chartsData);
+                }
+            } catch (error) {
+                console.error('Error fetching analytics data:', error);
+            }
+        }
+        
+        // Initial render
+        renderCharts(chartsData);
+        
+        // Auto-refresh every 1 second
+        setInterval(fetchAnalyticsData, 1000);
+        
+        // Also refresh when window gains focus
+        window.addEventListener('focus', fetchAnalyticsData);
     </script>
 </body>
 

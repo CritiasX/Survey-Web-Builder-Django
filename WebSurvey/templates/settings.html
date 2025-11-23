@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+{% load static %}
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Settings - ResponsePro</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.6/dist/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bss-overrides.css' %}">
+</head>
+
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle shifted" id="sidebarToggle">
+        <i class="bx bx-menu"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <a href="{% url 'dashboard' %}" class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="bx bx-grid-alt" style="color: white;"></i>
+                </div>
+                <span>ResponsePro</span>
+            </a>
+        </div>
+
+        <!-- User Profile -->
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            </div>
+            <div class="user-info">
+                <h6>{{ user.first_name }} {{ user.last_name }}</h6>
+                <p>{{ user.get_role_display }}</p>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Main Menu</div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'dashboard' %}" class="sidebar-nav-link">
+                    <i class="bx bx-home-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            {% if user.role == 'teacher' %}
+            <!-- Teacher Menu Items -->
+            <div class="nav-section-title">Survey Management</div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-file"></i>
+                    <span>My Surveys</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'survey_create' %}" class="sidebar-nav-link">
+                    <i class="bx bx-plus-circle"></i>
+                    <span>Create Survey</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'section_list' %}" class="sidebar-nav-link">
+                    <i class="bx bx-layer"></i>
+                    <span>Manage Sections</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'overall_analytics' %}" class="sidebar-nav-link">
+                    <i class="bx bx-bar-chart-alt"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+
+           <div class="sidebar-nav-item">
+               <a href="{% url 'response_management' %}" class="sidebar-nav-link">
+               <i class="bx bx-group"></i>
+               <span>Responses</span>
+               </a>
+           </div>
+
+
+            {% else %}
+            <!-- Student Menu Items -->
+            <div class="sidebar-nav-item">
+                <a href="{% url 'student_available_surveys' %}" class="sidebar-nav-link">
+                    <i class="bx bx-list-ul"></i>
+                    <span>Surveys</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'student_history' %}" class="sidebar-nav-link">
+                    <i class="bx bx-history"></i>
+                    <span>My History</span>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Common Menu Items -->
+            <div class="nav-section-title">Account</div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'profile' %}" class="sidebar-nav-link">
+                    <i class="bx bx-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+
+            <div class="sidebar-nav-item">
+                <a href="{% url 'settings' %}" class="sidebar-nav-link active">
+                    <i class="bx bx-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="sidebar-logout">
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="bx bx-log-out"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-content" id="mainContent">
+        <div class="container-fluid py-4">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="bx bx-cog me-2"></i>Settings
+                            </h2>
+                            <p class="text-muted mb-0">Manage your account settings and security</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if messages %}
+            <div class="row">
+                <div class="col-12">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="bx {% if message.tags == 'success' %}bx-check-circle{% elif message.tags == 'error' %}bx-error-circle{% else %}bx-info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <!-- Account Information -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <h5 class="mb-0 fw-bold"><i class="bx bx-info-circle me-2 text-info"></i>Account Information</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="bx bx-user fs-4 text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted small mb-1">Username</h6>
+                                            <p class="mb-0 fw-semibold">{{ user.username }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="bx bx-envelope fs-4 text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted small mb-1">Email</h6>
+                                            <p class="mb-0 fw-semibold">{{ user.email }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="bx bx-shield fs-4 text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted small mb-1">Role</h6>
+                                            <p class="mb-0"><span class="badge bg-primary">{{ user.get_role_display }}</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="bx bx-calendar fs-4 text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted small mb-1">Member Since</h6>
+                                            <p class="mb-0 fw-semibold">{{ user.date_joined|date:"M d, Y" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if user.role == 'student' and user.section %}
+                                <div class="col-md-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="bx bx-layer fs-4 text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="text-muted small mb-1">Section</h6>
+                                            <p class="mb-0 fw-semibold">{{ user.section.name }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8 offset-lg-2 mb-4">
+                    <!-- Change Password -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <h5 class="mb-0 fw-bold"><i class="bx bx-lock me-2 text-primary"></i>Change Password</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="alert alert-info border-0" role="alert">
+                                <i class="bx bx-info-circle me-2"></i>
+                                <strong>Security Tip:</strong> Use a strong password with at least 8 characters including letters, numbers, and symbols.
+                            </div>
+                            <form method="post" action="{% url 'settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="change_password">
+                                
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label fw-semibold">Current Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i class="bx bx-lock"></i></span>
+                                        <input type="password" class="form-control border-start-0" id="current_password" name="current_password" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label fw-semibold">New Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i class="bx bx-lock-open"></i></span>
+                                        <input type="password" class="form-control border-start-0" id="new_password" name="new_password" required>
+                                    </div>
+                                    <div class="form-text"><i class="bx bx-info-circle me-1"></i>Password must be at least 8 characters long</div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="confirm_password" class="form-label fw-semibold">Confirm New Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i class="bx bx-check-circle"></i></span>
+                                        <input type="password" class="form-control border-start-0" id="confirm_password" name="confirm_password" required>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <a href="{% url 'dashboard' %}" class="btn btn-light">
+                                        <i class="bx bx-x me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-save me-1"></i>Update Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/dashboard-sidebar.js' %}"></script>
+</body>
+</html>
