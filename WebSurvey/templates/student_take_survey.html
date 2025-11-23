@@ -332,95 +332,115 @@
             <form method="post" class="mb-5">
                 {% csrf_token %}
                 {% for question in questions %}
-                <div class="question-card" data-question-id="{{ question.id }}" data-question-type="{{ question.question_type }}">
-                    <!-- Question Header -->
-                    <div class="mb-3">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-light text-dark">{{ question.get_question_type_display }}</span>
-                            <span class="text-muted small">{% if question.required %}Required{% else %}Optional{% endif %}</span>
-                        </div>
-                        <div style="font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin-top: 0.75rem; line-height: 1.5;">
-                            <strong>{{ forloop.counter }}.</strong> {{ question.question_text|default:"[No question text]" }}
-                        </div>
-                    </div>
-
-                    {% comment %} Display context items (code snippets and images) {% endcomment %}
-                    {% if question.context_items.all %}
-                    <div class="context-section">
-                        {% for context in question.context_items.all %}
-                        <div class="context-item">
-                            {% if context.context_type == 'code_snippet' %}
-                                <div class="context-label">
-                                    <i class="bx bx-code-alt"></i>
-                                    Code Snippet
-                                </div>
-                                <pre class="context-code">{{ context.content }}</pre>
-                            {% elif context.context_type == 'image' %}
-                                <div class="context-label">
-                                    <i class="bx bx-image"></i>
-                                    Image
-                                </div>
-                                <img src="{{ context.content }}" alt="Question context image" class="context-image">
+                    {% if question.question_type == 'heading' or question.question_type == 'subheading' or question.question_type == 'paragraph' %}
+                        {# Text elements - display as decorative text, not questions #}
+                        <div class="text-element" style="background: transparent; border: none; box-shadow: none; padding: {% if question.question_type == 'heading' %}1.5rem 0{% else %}1rem 0{% endif %}; margin-bottom: 1rem;">
+                            {% if question.question_type == 'heading' %}
+                                <h2 style="font-size: 2rem; font-weight: 700; color: #2c3e50; margin: 0; line-height: 1.3;">
+                                    {{ question.question_text }}
+                                </h2>
+                            {% elif question.question_type == 'subheading' %}
+                                <h3 style="font-size: 1.5rem; font-weight: 600; color: #2c3e50; margin: 0; line-height: 1.4;">
+                                    {{ question.question_text }}
+                                </h3>
+                            {% elif question.question_type == 'paragraph' %}
+                                <p style="font-size: 1rem; font-weight: 400; color: #495057; margin: 0; line-height: 1.6;">
+                                    {{ question.question_text }}
+                                </p>
                             {% endif %}
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    {% if question.question_type == 'multiple_choice' %}
-                        {% for option in question.options.all %}
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio"
-                                   name="question_{{ question.id }}"
-                                   id="option_{{ option.id }}"
-                                   value="{{ option.id }}"
-                                   {% if question.existing_answer and question.existing_answer.selected_option_id == option.id %}checked{% endif %}>
-                            <label class="form-check-label" for="option_{{ option.id }}">
-                                {{ option.option_text }}
-                            </label>
-                        </div>
-                        {% endfor %}
-                    {% elif question.question_type == 'likert' %}
-                        <div class="likert-scale-row">
-                            {% for option in question.options.all %}
-                            <label class="likert-option likert-{{ forloop.counter|default:1 }}">
-                                <input class="form-check-input" type="radio"
-                                       name="question_{{ question.id }}"
-                                       id="likert_{{ option.id }}"
-                                       value="{{ option.id }}"
-                                       {% if question.existing_answer and question.existing_answer.selected_option_id == option.id %}checked{% endif %}>
-                                <span class="likert-circle" aria-hidden="true"></span>
-                                <span class="likert-text">{{ option.option_text }}</span>
-                            </label>
-                            {% empty %}
-                            <p class="text-muted mb-0">No scale labels provided.</p>
-                            {% endfor %}
-                        </div>
-                    {% elif question.question_type == 'true_false' %}
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio"
-                                   name="question_{{ question.id }}"
-                                   id="question_{{ question.id }}_true"
-                                   value="true"
-                                   {% if question.existing_answer and question.existing_answer.true_false_answer %}checked{% endif %}>
-                            <label class="form-check-label" for="question_{{ question.id }}_true">True</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio"
-                                   name="question_{{ question.id }}"
-                                   id="question_{{ question.id }}_false"
-                                   value="false"
-                                   {% if question.existing_answer and question.existing_answer.true_false_answer is not None and not question.existing_answer.true_false_answer %}checked{% endif %}>
-                            <label class="form-check-label" for="question_{{ question.id }}_false">False</label>
-                        </div>
                     {% else %}
-                        <div class="mb-3">
-                            <textarea class="form-control" rows="4"
-                                      name="question_{{ question.id }}"
-                                      placeholder="Type your answer here...">{% if question.existing_answer %}{{ question.existing_answer.text_answer }}{% endif %}</textarea>
+                        {# Regular questions with numbering #}
+                        <div class="question-card" data-question-id="{{ question.id }}" data-question-type="{{ question.question_type }}">
+                            <!-- Question Header -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-light text-dark">{{ question.get_question_type_display }}</span>
+                                    <span class="text-muted small">{% if question.required %}Required{% else %}Optional{% endif %}</span>
+                                </div>
+                                <div style="font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin-top: 0.75rem; line-height: 1.5;">
+                                    <strong class="question-number"></strong> {{ question.question_text|default:"[No question text]" }}
+                                </div>
+                            </div>
+
+                            {% comment %} Display context items (code snippets and images) {% endcomment %}
+                            {% if question.context_items.all %}
+                            <div class="context-section">
+                                {% for context in question.context_items.all %}
+                                <div class="context-item">
+                                    {% if context.context_type == 'code_snippet' %}
+                                        <div class="context-label">
+                                            <i class="bx bx-code-alt"></i>
+                                            Code Snippet
+                                        </div>
+                                        <pre class="context-code">{{ context.content }}</pre>
+                                    {% elif context.context_type == 'image' %}
+                                        <div class="context-label">
+                                            <i class="bx bx-image"></i>
+                                            Image
+                                        </div>
+                                        <img src="{{ context.content }}" alt="Question context image" class="context-image">
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if question.question_type == 'multiple_choice' %}
+                                {% for option in question.options.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio"
+                                           name="question_{{ question.id }}"
+                                           id="option_{{ option.id }}"
+                                           value="{{ option.id }}"
+                                           {% if question.existing_answer and question.existing_answer.selected_option_id == option.id %}checked{% endif %}>
+                                    <label class="form-check-label" for="option_{{ option.id }}">
+                                        {{ option.option_text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            {% elif question.question_type == 'likert' %}
+                                <div class="likert-scale-row">
+                                    {% for option in question.options.all %}
+                                    <label class="likert-option likert-{{ forloop.counter|default:1 }}">
+                                        <input class="form-check-input" type="radio"
+                                               name="question_{{ question.id }}"
+                                               id="likert_{{ option.id }}"
+                                               value="{{ option.id }}"
+                                               {% if question.existing_answer and question.existing_answer.selected_option_id == option.id %}checked{% endif %}>
+                                        <span class="likert-circle" aria-hidden="true"></span>
+                                        <span class="likert-text">{{ option.option_text }}</span>
+                                    </label>
+                                    {% empty %}
+                                    <p class="text-muted mb-0">No scale labels provided.</p>
+                                    {% endfor %}
+                                </div>
+                            {% elif question.question_type == 'true_false' %}
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio"
+                                           name="question_{{ question.id }}"
+                                           id="question_{{ question.id }}_true"
+                                           value="true"
+                                           {% if question.existing_answer and question.existing_answer.true_false_answer %}checked{% endif %}>
+                                    <label class="form-check-label" for="question_{{ question.id }}_true">True</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio"
+                                           name="question_{{ question.id }}"
+                                           id="question_{{ question.id }}_false"
+                                           value="false"
+                                           {% if question.existing_answer and question.existing_answer.true_false_answer is not None and not question.existing_answer.true_false_answer %}checked{% endif %}>
+                                    <label class="form-check-label" for="question_{{ question.id }}_false">False</label>
+                                </div>
+                            {% else %}
+                                <div class="mb-3">
+                                    <textarea class="form-control" rows="4"
+                                              name="question_{{ question.id }}"
+                                              placeholder="Type your answer here...">{% if question.existing_answer %}{{ question.existing_answer.text_answer }}{% endif %}</textarea>
+                                </div>
+                            {% endif %}
                         </div>
                     {% endif %}
-                </div>
                 {% empty %}
                 <div class="question-card text-center">
                     <p class="text-muted mb-0">No questions have been added to this survey yet.</p>
@@ -446,7 +466,15 @@
     <script src="{% static 'js/dashboard-sidebar.js' %}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Number the questions (excluding text elements)
             const questionCards = Array.from(document.querySelectorAll('.question-card[data-question-id]'));
+            questionCards.forEach((card, index) => {
+                const numberEl = card.querySelector('.question-number');
+                if (numberEl) {
+                    numberEl.textContent = `${index + 1}.`;
+                }
+            });
+
             const answeredCountEl = document.getElementById('answeredCount');
             const totalCountEl = document.getElementById('totalCount');
             const progressBarEl = document.getElementById('surveyProgressBar');
