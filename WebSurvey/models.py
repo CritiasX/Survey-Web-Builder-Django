@@ -62,7 +62,7 @@ class Question(models.Model):
         ('multiple_choice', 'Multiple Choice'),
         ('likert', 'Likert Scale'),
         ('true_false', 'True or False'),
-        ('essay', 'Essay'),
+        ('essay', 'Short Text'),
         ('enumeration', 'Enumeration'),
         ('heading', 'Heading'),
         ('subheading', 'Subheading'),

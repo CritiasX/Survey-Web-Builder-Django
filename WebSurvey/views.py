@@ -544,14 +544,6 @@ def save_survey(request):
                             base_kwargs['points'] = 0  # Text elements have no points
                             base_kwargs['required'] = False  # Text elements are not required
 
-                        # Essay: optional max_chars
-                        if q_type == 'essay':
-                            max_chars = q_data.get('max_chars')
-                            try:
-                                base_kwargs['max_chars'] = int(max_chars) if max_chars not in (None, '', 'None') else None
-                            except (TypeError, ValueError):
-                                base_kwargs['max_chars'] = None
-
                         question = Question.objects.create(**base_kwargs)
                         logger.debug(f"Created question {idx}: {q_type} - {q_text[:50] if q_text else 'no text'}")
 

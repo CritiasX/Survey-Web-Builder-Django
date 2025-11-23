@@ -625,7 +625,6 @@
         .student-view-mode .btn-outline-primary,
         .student-view-mode input[type="radio"][name*="correct"],
         .student-view-mode .question-tf-answer,
-        .student-view-mode .question-max-chars,
         .student-view-mode .enum-answers-container,
         .student-view-mode .question-header-left h5,
         .student-view-mode .form-label,
@@ -1135,27 +1134,11 @@
                 </div>
             </div>
 
-            <div class="element-item" draggable="true" data-type="true_false">
-                <i class="bx bx-check-circle"></i>
-                <div>
-                    <div class="element-label">True/False</div>
-                    <div class="element-desc">Yes or no question</div>
-                </div>
-            </div>
-
-            <div class="element-item" draggable="true" data-type="enumeration">
-                <i class="bx bx-list-ol"></i>
-                <div>
-                    <div class="element-label">Enumeration</div>
-                    <div class="element-desc">List of answers</div>
-                </div>
-            </div>
-
             <div class="element-item" draggable="true" data-type="essay">
                 <i class="bx bx-edit"></i>
                 <div>
-                    <div class="element-label">Essay</div>
-                    <div class="element-desc">Long text answer</div>
+                    <div class="element-label">Short Text</div>
+                    <div class="element-desc">Single short answer</div>
                 </div>
             </div>
 
@@ -1907,7 +1890,7 @@
                 'likert': 'Likert Scale',
                 'true_false': 'True/False',
                 'enumeration': 'Enumeration',
-                'essay': 'Essay',
+                'essay': 'Short Text',
                 'heading': 'Heading',
                 'subheading': 'Subheading',
                 'paragraph': 'Paragraph'
@@ -2083,13 +2066,6 @@
                         <button class="btn btn-sm btn-outline-primary mt-2" onclick="addEnumAnswer(${questionCounter})">
                             <i class="bx bx-plus"></i> Add Answer
                         </button>
-                    </div>
-                `;
-            } else if (type === 'essay') {
-                questionHtml += `
-                    <div class="mb-3">
-                        <label class="form-label">Max Characters (optional)</label>
-                        <input type="number" class="form-control question-max-chars" placeholder="No limit">
                     </div>
                 `;
             }
@@ -2447,11 +2423,6 @@
                         hasError = true;
                         return;
                     }
-                } else if (type === 'essay') {
-                    const maxCharsEl = card.querySelector('.question-max-chars');
-                    if (maxCharsEl && maxCharsEl.value) {
-                        questionData.max_chars = parseInt(maxCharsEl.value) || null;
-                    }
                 }
 
                 // Collect context items
@@ -2604,11 +2575,6 @@
                                     `);
                                 });
                             }
-                        } else if (q.type === 'essay') {
-                            const maxCharsEl = card.querySelector('.question-max-chars');
-                            if (maxCharsEl && q.max_chars) {
-                                maxCharsEl.value = q.max_chars;
-                            }
                         }
 
                         // Load context items if present
@@ -2713,8 +2679,7 @@
                     let insertBefore = card.querySelector('.options-container')
                         || card.querySelector('.likert-scale-card')
                         || card.querySelector('.question-tf-answer')?.closest('.mb-3')
-                        || card.querySelector('.enum-answers-container')?.closest('.mb-3')
-                        || card.querySelector('.question-max-chars')?.closest('.mb-3');
+                        || card.querySelector('.enum-answers-container')?.closest('.mb-3');
 
                     if (insertBefore && insertBefore.parentNode) {
                         // Move context slot before the answer section
@@ -2745,7 +2710,7 @@
                     }
                 }
 
-                // Format Essay questions with textarea placeholder
+                // Format Short Text questions with textarea placeholder
                 if (type === 'essay') {
                     const lastMb3 = card.querySelector('.mb-3:last-of-type');
                     if (lastMb3 && !lastMb3.querySelector('.student-essay-area')) {
@@ -2975,11 +2940,6 @@
                             }
                         });
                         questionData.answers = answers;
-                    } else if (type === 'essay') {
-                        const maxCharsEl = card.querySelector('.question-max-chars');
-                        if (maxCharsEl && maxCharsEl.value) {
-                            questionData.max_chars = parseInt(maxCharsEl.value) || null;
-                        }
                     }
 
                     // Collect context elements for this question
