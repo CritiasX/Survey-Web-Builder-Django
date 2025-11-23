@@ -112,7 +112,7 @@ def _save_student_answers(response, survey, post_data):
         )
         field_name = f'question_{question.id}'
 
-        if question.question_type == 'multiple_choice':
+        if question.question_type in ['multiple_choice', 'likert']:
             option_id = post_data.get(field_name)
             if option_id:
                 option = question.options.filter(id=option_id).first()
@@ -579,15 +579,15 @@ def save_survey(request):
 
                         # Only process question-specific data for actual questions
                         if not is_text_element:
-                            if q_type == 'multiple_choice':
+                            if q_type in ['multiple_choice', 'likert']:
                                 options = q_data.get('options') or []
                                 if not options:
-                                    logger.warning(f"Multiple choice question {idx} has no options")
+                                    logger.warning(f"{q_type} question {idx} has no options")
                                 for opt_idx, option in enumerate(options):
                                     MultipleChoiceOption.objects.create(
                                         question=question,
                                         option_text=option.get('text', ''),
-                                        is_correct=bool(option.get('is_correct') or option.get('correct')),
+                                        is_correct=bool(option.get('is_correct') or option.get('correct')) if q_type == 'multiple_choice' else False,
                                         order=opt_idx,
                                     )
 
@@ -673,7 +673,7 @@ def get_survey_data(request, survey_id):
                 'order': question.order
             }
 
-            if question.question_type == 'multiple_choice':
+            if question.question_type in ['multiple_choice', 'likert']:
                 q_data['options'] = [
                     {
                         'text': opt.option_text,
@@ -800,7 +800,7 @@ def take_survey(request, survey_id):
                     missing_required.append(question)
                     continue
 
-                if question.question_type == 'multiple_choice':
+                if question.question_type in ['multiple_choice', 'likert']:
                     if not answer.selected_option_id:
                         missing_required.append(question)
                 elif question.question_type == 'true_false':
@@ -1111,7 +1111,7 @@ def survey_analytics(request, survey_id):
             response__in=responses
         )
         
-        if question.question_type == 'multiple_choice':
+        if question.question_type in ['multiple_choice', 'likert']:
             # Prepare data for pie chart and bar chart
             labels = []
             values = []

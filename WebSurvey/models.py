@@ -60,6 +60,7 @@ class Survey(models.Model):
 class Question(models.Model):
     QUESTION_TYPES = [
         ('multiple_choice', 'Multiple Choice'),
+        ('likert', 'Likert Scale'),
         ('true_false', 'True or False'),
         ('essay', 'Essay'),
         ('enumeration', 'Enumeration'),
@@ -180,4 +181,3 @@ class QuestionAnswer(models.Model):
 
     def __str__(self):
         return f"{self.response.student.username} - Q{self.question.order}"
-

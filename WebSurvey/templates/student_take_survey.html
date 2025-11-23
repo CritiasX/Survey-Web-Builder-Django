@@ -77,6 +77,79 @@
             margin-top: 0.5rem;
         }
 
+        /* Likert scale styling */
+        .likert-scale-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+            row-gap: 0.75rem;
+        }
+
+        .likert-option {
+            --likert-color: #18bc9c;
+            --likert-soft: rgba(24, 188, 156, 0.12);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            padding: 0.15rem 0.25rem;
+            transition: transform 0.15s ease;
+        }
+
+        .likert-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .likert-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            inset: 0;
+            cursor: pointer;
+        }
+
+        .likert-circle {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--likert-color);
+            display: inline-block;
+            transition: all 0.2s ease;
+            background: transparent;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+
+        .likert-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.35rem;
+        }
+
+        .likert-option input[type="radio"]:checked + .likert-circle {
+            background: var(--likert-color);
+            border-color: var(--likert-color);
+            box-shadow: 0 0 0 6px var(--likert-soft);
+        }
+
+        .likert-option input[type="radio"]:focus + .likert-circle {
+            outline: 3px solid rgba(24,188,156,0.15);
+            outline-offset: 2px;
+        }
+
+        .likert-1,
+        .likert-2,
+        .likert-3,
+        .likert-4,
+        .likert-5 {
+            --likert-color: #18bc9c;
+            --likert-soft: rgba(24, 188, 156, 0.12);
+        }
+
         /* Progress indicator styling */
         .survey-progress-card {
             background: #eaf9f4;
@@ -313,6 +386,22 @@
                             </label>
                         </div>
                         {% endfor %}
+                    {% elif question.question_type == 'likert' %}
+                        <div class="likert-scale-row">
+                            {% for option in question.options.all %}
+                            <label class="likert-option likert-{{ forloop.counter|default:1 }}">
+                                <input class="form-check-input" type="radio"
+                                       name="question_{{ question.id }}"
+                                       id="likert_{{ option.id }}"
+                                       value="{{ option.id }}"
+                                       {% if question.existing_answer and question.existing_answer.selected_option_id == option.id %}checked{% endif %}>
+                                <span class="likert-circle" aria-hidden="true"></span>
+                                <span class="likert-text">{{ option.option_text }}</span>
+                            </label>
+                            {% empty %}
+                            <p class="text-muted mb-0">No scale labels provided.</p>
+                            {% endfor %}
+                        </div>
                     {% elif question.question_type == 'true_false' %}
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio"
@@ -377,7 +466,7 @@
 
             const isAnswered = (card) => {
                 const type = card.dataset.questionType;
-                if (type === 'multiple_choice' || type === 'true_false') {
+                if (type === 'multiple_choice' || type === 'likert' || type === 'true_false') {
                     return Boolean(card.querySelector('input[type="radio"]:checked'));
                 }
 

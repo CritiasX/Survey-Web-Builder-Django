@@ -136,7 +136,7 @@
                     <span class="ms-2">{{ answer.question.points }} pts</span>
                 </div>
                 <div class="response-box p-3 bg-light rounded">
-                    {% if answer.question.question_type == 'multiple_choice' %}
+                    {% if answer.question.question_type == 'multiple_choice' or answer.question.question_type == 'likert' %}
                         {% if answer.selected_option %}
                             <p class="mb-0"><strong>Your answer:</strong> {{ answer.selected_option.option_text }}</p>
                         {% else %}

@@ -490,6 +490,61 @@
             cursor: pointer;
         }
 
+        /* Likert scale styling */
+        .likert-scale-card {
+            background: #f8fbf9;
+            border: 1px solid #d6ebe3;
+            border-radius: 14px;
+            padding: 0.75rem 0.75rem 0.35rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .likert-scale-card .option-item {
+            padding: 0.35rem 0.25rem;
+            border-bottom: 1px solid #e3efe8;
+            margin-bottom: 0.35rem;
+        }
+
+        .likert-scale-card .option-item:last-of-type {
+            border-bottom: none;
+            margin-bottom: 0.1rem;
+        }
+
+        .likert-scale-card .option-item input[type="text"] {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            padding-left: 0;
+        }
+
+        .likert-scale-card .option-item input[type="text"]:focus {
+            outline: none;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        .likert-remove {
+            background: transparent;
+            border: none;
+            color: #7f8c8d;
+            padding: 0.25rem;
+        }
+
+        .likert-remove:hover {
+            color: #e74c3c;
+        }
+
+        .likert-add {
+            color: #18bc9c;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .likert-add:hover {
+            text-decoration: underline;
+            color: #119a7f;
+        }
+
         .save-actions {
             position: fixed;
             bottom: 2rem;
@@ -1077,6 +1132,14 @@
                 <div>
                     <div class="element-label">Multiple Choice</div>
                     <div class="element-desc">Select one answer</div>
+                </div>
+            </div>
+
+            <div class="element-item" draggable="true" data-type="likert">
+                <i class="bx bx-slider"></i>
+                <div>
+                    <div class="element-label">Likert Scale</div>
+                    <div class="element-desc">Rate along a scale</div>
                 </div>
             </div>
 
@@ -1849,6 +1912,7 @@
 
             const typeLabels = {
                 'multiple_choice': 'Multiple Choice',
+                'likert': 'Likert Scale',
                 'true_false': 'True/False',
                 'enumeration': 'Enumeration',
                 'essay': 'Essay',
@@ -1985,6 +2049,29 @@
                         </div>
                         <button class="btn btn-sm btn-outline-primary mt-2" onclick="addOption(${questionCounter})">
                             <i class="bx bx-plus"></i> Add Option
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'likert') {
+                questionHtml += `
+                    <div class="mb-3">
+                        <label class="form-label">Scale Labels</label>
+                        <div class="likert-scale-card" id="likert-${questionCounter}">
+                            <div class="option-item">
+                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="option-item">
+                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
+                            </div>
+                            <div class="option-item">
+                                <input type="text" class="form-control" placeholder="Label (optional)">
+                                <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-link p-0 mt-2 likert-add" onclick="addLikertOption(${questionCounter})">
+                            <i class="bx bx-plus"></i> Add Label
                         </button>
                     </div>
                 `;
@@ -2223,6 +2310,32 @@
             container.insertAdjacentHTML('beforeend', optionHtml);
         }
 
+        function addLikertOption(questionId) {
+            const container = document.getElementById(`likert-${questionId}`);
+            if (!container) return;
+
+            const optionHtml = `
+                <div class="option-item">
+                    <input type="text" class="form-control" placeholder="Label (optional)">
+                    <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', optionHtml);
+        }
+
+        function removeLikertOption(btn) {
+            const item = btn.closest('.option-item');
+            const container = btn.closest('.likert-scale-card');
+            if (item) {
+                item.remove();
+            }
+
+            // Always keep at least one blank row to guide the user
+            if (container && container.querySelectorAll('.option-item').length === 0) {
+                addLikertOption(container.id.replace('likert-', ''));
+            }
+        }
+
         function addEnumAnswer(questionId) {
             const container = document.getElementById(`enum-${questionId}`);
             const answerCount = container.children.length + 1;
@@ -2328,6 +2441,20 @@
                     }
                     if (!hasCorrect) {
                         showAlert('Please mark the correct answer for multiple choice questions', 'Error');
+                        hasError = true;
+                        return;
+                    }
+                } else if (type === 'likert') {
+                    questionData.options = [];
+                    const optionItems = card.querySelectorAll('.likert-scale-card .option-item input[type="text"]');
+                    optionItems.forEach((input, idx) => {
+                        if (input.value.trim()) {
+                            questionData.options.push({ text: input.value.trim(), is_correct: false, order: idx });
+                        }
+                    });
+
+                    if (questionData.options.length < 2) {
+                        showAlert('Likert questions need at least 2 labels', 'Error');
                         hasError = true;
                         return;
                     }
@@ -2480,6 +2607,19 @@
                                     `);
                                 });
                             }
+                        } else if (q.type === 'likert' && q.options) {
+                            const likertContainer = card.querySelector('.likert-scale-card');
+                            if (likertContainer) {
+                                likertContainer.innerHTML = '';
+                                q.options.forEach(opt => {
+                                    likertContainer.insertAdjacentHTML('beforeend', `
+                                        <div class="option-item">
+                                            <input type="text" class="form-control" value="${opt.text || ''}" placeholder="Label (optional)">
+                                            <button type="button" class="likert-remove" onclick="removeLikertOption(this)"><i class="bx bx-x"></i></button>
+                                        </div>
+                                    `);
+                                });
+                            }
                         } else if (q.type === 'true_false') {
                             const tfEl = card.querySelector('.question-tf-answer');
                             if (tfEl && q.correct_answer !== undefined) {
@@ -2606,6 +2746,7 @@
                 if (contextSlot) {
                     // Find where to insert - before options, tf answer, enum container, or essay area
                     let insertBefore = card.querySelector('.options-container')
+                        || card.querySelector('.likert-scale-card')
                         || card.querySelector('.question-tf-answer')?.closest('.mb-3')
                         || card.querySelector('.enum-answers-container')?.closest('.mb-3')
                         || card.querySelector('.question-max-chars')?.closest('.mb-3');
@@ -2843,6 +2984,20 @@
                                 options.push({
                                     text: textInput.value.trim(),
                                     is_correct: radioInput ? radioInput.checked : false,
+                                    order: idx
+                                });
+                            }
+                        });
+                        questionData.options = options;
+                    } else if (type === 'likert') {
+                        const options = [];
+                        const optionItems = card.querySelectorAll('.likert-scale-card .option-item');
+                        optionItems.forEach((opt, idx) => {
+                            const textInput = opt.querySelector('input[type="text"]');
+                            if (textInput && textInput.value.trim()) {
+                                options.push({
+                                    text: textInput.value.trim(),
+                                    is_correct: false,
                                     order: idx
                                 });
                             }
